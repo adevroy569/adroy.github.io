@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Aniket Dev Roy — Geo-Data Scientist</title>
+  <meta name="description" content="Portfolio of Aniket Dev Roy — geo-data scientist and GIS analyst mapping food access, seismic hazard, and tropical cyclone intensity." />
+  <meta property="og:title" content="Aniket Dev Roy — Geo-Data Scientist" />
+  <meta property="og:description" content="GIS analysis, seismic hazard research, and tropical cyclone climatology. M.S. Geo-Data Sciences, Purdue University." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,5 28,27 4,27' fill='none' stroke='%233FB8BF' stroke-width='3'/%3E%3Ccircle cx='16' cy='21' r='2.5' fill='%233FB8BF'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Environmental mood layer: base color + realm glows (driven by GSAP) -->
+  <div class="env" aria-hidden="true">
+    <div class="env-base"></div>
+    <div class="env-glow env-glow--canopy"></div>
+    <div class="env-glow env-glow--roots"></div>
+  </div>
+
+  <!-- Interactive cross-field background -->
+  <canvas id="cross-field" aria-hidden="true"></canvas>
+
+  <!-- Background particle field: motes that shift behaviour per realm -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <!-- World-tree SVG layer: trunk, branches, twigs, roots (built by script.js) -->
+  <div id="tree-layer" aria-hidden="true"></div>
+
+  <!-- Custom survey-reticle cursor (fine pointers only) -->
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+
+  <!-- HUD minimap: realm navigation pinned to the right edge -->
+  <nav class="hud" aria-label="Realm minimap">
+    <span class="hud-rail" aria-hidden="true"></span>
+    <span class="hud-leaf" aria-hidden="true"></span>
+    <button class="hud-node" data-target="work" aria-label="Jump to Canopy">
+      <span class="hud-glyph">C</span>
+    </button>
+    <button class="hud-node" data-target="midgard" aria-label="Jump to Midgard">
+      <span class="hud-glyph">M</span>
+    </button>
+    <button class="hud-node" data-target="roots" aria-label="Jump to Roots">
+      <span class="hud-glyph">R</span>
+    </button>
+    <button class="hud-node" data-target="about" aria-label="Jump to About">
+      <span class="hud-glyph">A</span>
+    </button>
+  </nav>
+
+  <!-- Telemetry HUD: decorative geo-data readouts (xl screens only) -->
+  <aside class="telemetry telemetry-l" aria-hidden="true">
+    <div class="tlm-frame">
+      <span class="tlm-head">GEO-REF // LIVE</span>
+      <div class="tlm-rows">
+        <div class="tlm-row"><span class="tlm-key">LAT</span><span class="tlm-val" data-tlm="lat">00.0000&deg; N</span></div>
+        <div class="tlm-row"><span class="tlm-key">LON</span><span class="tlm-val" data-tlm="lon">000.0000&deg; W</span></div>
+        <div class="tlm-row"><span class="tlm-key" data-tlm="mk">ALT</span><span class="tlm-val" data-tlm="mv">000 km</span></div>
+      </div>
+    </div>
+    <div class="tlm-frame">
+      <span class="tlm-head">MATRIX 3&times;3</span>
+      <div class="tlm-matrix">
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+        <span class="tlm-cell">000</span>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="telemetry telemetry-r" aria-hidden="true">
+    <span class="tlm-sys" data-tlm="sysref">SYS_REF: HURSAT/NETCDF</span>
+  </aside>
+
+  <!-- ============ NAVIGATION ============ -->
+  <header class="site-nav">
+    <a class="brand" href="#top" aria-label="Back to top">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <polygon points="16,5 28,27 4,27" fill="none" stroke="currentColor" stroke-width="2.5" />
+        <circle cx="16" cy="21" r="2.5" fill="currentColor" />
+      </svg>
+      <span class="brand-name">Aniket Dev Roy</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#work" class="nav-link">Canopy</a>
+      <a href="#midgard" class="nav-link">Midgard</a>
+      <a href="#roots" class="nav-link">Roots</a>
+      <a href="#about" class="nav-link">About</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ INTRO ============ -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-map-wrap glow reveal-load" style="--d:0">
+          <div class="map-frame">
+            <div class="map-fallback mono" aria-hidden="true">West Lafayette, Indiana</div>
+            <section id="hero-map" aria-label="Map flying into Purdue University, West Lafayette, Indiana"></section>
+            <div class="map-tint" aria-hidden="true"></div>
+            <div class="map-scrim" aria-hidden="true"></div>
+          </div>
+          <span class="map-clock mono" id="map-clock">
+            <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><g stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5.2"/><line x1="12" y1="18.8" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5.2" y2="12"/><line x1="18.8" y1="12" x2="21.5" y2="12"/><line x1="5.3" y1="5.3" x2="7.2" y2="7.2"/><line x1="16.8" y1="16.8" x2="18.7" y2="18.7"/><line x1="5.3" y1="18.7" x2="7.2" y2="16.8"/><line x1="16.8" y1="7.2" x2="18.7" y2="5.3"/></g></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9Z"/></svg>
+            <span id="clock-time"></span>
+          </span>
+          <div class="hero-portrait reveal-load" style="--d:2">
+            <div class="portrait-wrap">
+              <svg class="portrait-ring" viewBox="0 0 220 220" aria-hidden="true">
+                <circle cx="110" cy="110" r="104" fill="none" stroke-dasharray="4 9" />
+                <g class="ring-ticks">
+                  <line x1="110" y1="0" x2="110" y2="10" />
+                  <line x1="110" y1="210" x2="110" y2="220" />
+                  <line x1="0" y1="110" x2="10" y2="110" />
+                  <line x1="210" y1="110" x2="220" y2="110" />
+                </g>
+              </svg>
+              <img class="portrait" src="assets/portrait.jpg" alt="Portrait of Aniket Dev Roy" width="720" height="720" />
+            </div>
+          </div>
+          <div class="hero-greeting reveal-load" style="--d:1">
+            <p class="hello">Hello,</p>
+            <h1 class="hero-name">I'm Aniket.</h1>
+          </div>
+        </div>
+        <div class="hero-below">
+          <div class="hero-ctas reveal-load" style="--d:3">
+            <a class="btn btn-primary" href="#work">Climb the tree</a>
+            <a class="btn btn-resume" href="assets/resume.pdf" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M13.5 3v5.5H19"/><path d="M9 13h6M9 16.5h6"/></svg>
+              Résumé
+            </a>
+            <div class="social-row">
+              <a class="social" href="mailto:aniketdevroy@gmail.com" aria-label="Email" title="Email">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
+              </a>
+              <a class="social" href="https://github.com/adevroy569" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill-icon" d="M12 2.5c-5.2 0-9.5 4.3-9.5 9.6 0 4.2 2.7 7.8 6.5 9.1.5.1.7-.2.7-.5v-1.8c-2.7.6-3.3-1.2-3.3-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.4-1.1-4.4-4.8 0-1 .4-1.9 1-2.6-.1-.2-.4-1.2.1-2.5 0 0 .8-.3 2.6 1a9 9 0 0 1 4.8 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.5.6.7 1 1.6 1 2.6 0 3.7-2.3 4.6-4.4 4.8.3.3.6.9.6 1.8v2.6c0 .3.2.6.7.5a9.6 9.6 0 0 0 6.5-9.1c0-5.3-4.3-9.6-9.5-9.6Z"/></svg>
+              </a>
+              <a class="social" href="https://linkedin.com/in/adr569" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="fill-icon" x="3" y="9.5" width="4" height="11"/><circle class="fill-icon" cx="5" cy="5.4" r="2.1"/><path class="fill-icon" d="M10.5 9.5h3.8v1.6c.6-1 1.8-1.9 3.6-1.9 2.9 0 4.6 1.8 4.6 5.3v6h-4v-5.5c0-1.6-.6-2.6-2-2.6-1.2 0-1.9.8-2.2 1.6-.1.3-.1.7-.1 1v5.5h-3.7z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THE WORLD TREE ============ -->
+    <div class="world-tree" id="world-tree">
+
+      <!-- Realm I: Canopy — upper air -->
+      <section class="realm" id="work" data-realm="canopy">
+        <div class="realm-inner">
+          <header class="section-head reveal">
+            <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> Realm I · Canopy</p>
+            <h2>Upper air</h2>
+            <p class="realm-sub">The crown of the tree: storm tops, satellite records, and the climate signal read from above.</p>
+          </header>
+          <div class="node-list" id="realm-canopy">
+            <!-- Canopy nodes rendered by script.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Realm II: Midgard — the human layer -->
+      <section class="realm" id="midgard" data-realm="midgard">
+        <div class="realm-inner">
+          <header class="section-head reveal">
+            <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> Realm II · Midgard</p>
+            <h2>The human layer</h2>
+            <p class="realm-sub">Ground level, where people live: food access, the air they breathe, and the skills to map both.</p>
+          </header>
+          <div class="node-list" id="realm-midgard">
+            <!-- Midgard nodes rendered by script.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Realm III: Roots — deep earth -->
+      <section class="realm" id="roots" data-realm="roots">
+        <div class="realm-inner">
+          <header class="section-head reveal">
+            <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> Realm III · Roots</p>
+            <h2>Deep earth</h2>
+            <p class="realm-sub">Where the roots drink: shear-wave velocity, soft sediment, and what the ground will do when it shakes.</p>
+          </header>
+          <div class="node-list" id="realm-roots">
+            <!-- Root nodes rendered by script.js -->
+          </div>
+
+          <!-- Taproot: About, at the absolute base of the tree -->
+          <article class="tree-node node-center about-node glow reveal" id="about" data-side="center">
+            <i class="node-corner c-tl" aria-hidden="true"></i>
+            <i class="node-corner c-br" aria-hidden="true"></i>
+            <span class="node-tag mono">Taproot · About</span>
+            <span class="node-port" aria-hidden="true"></span>
+            <div class="node-body">
+              <header class="section-head">
+                <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> About</p>
+                <h2>Surveyor's log</h2>
+              </header>
+              <p class="about-role">Geo-Data Scientist &amp; GIS Analyst</p>
+              <p class="about-toolkit mono">ArcGIS Pro · QGIS · Python / GeoPandas · xarray · Census API · NetCDF</p>
+              <div class="about-lead">
+                <p class="about-text">
+                  GIS Analyst at Purdue University Libraries, with an M.S. in Geo-Data
+                  Sciences from Purdue. I turn public earth and demographic data, from
+                  census records to satellites to seismometers, into reproducible maps
+                  and analyses people can act on: food access, seismic hazard, and
+                  hurricane climatology. When I'm not building pipelines I'm teaching
+                  them: the open GIS curriculum I author is used by researchers across
+                  the state.
+                </p>
+              </div>
+              <div class="traverse reveal">
+                <div class="traverse-line" aria-hidden="true"></div>
+                <ol class="waypoints">
+                  <li class="waypoint" style="--i:0">
+                    <span class="wp-mark" aria-hidden="true"></span>
+                    <span class="wp-year mono">2020–24</span>
+                    <span class="wp-label">B.S. Earth Sciences, Purdue · GIS Professional Certificate</span>
+                  </li>
+                  <li class="waypoint" style="--i:1">
+                    <span class="wp-mark" aria-hidden="true"></span>
+                    <span class="wp-year mono">2023–24</span>
+                    <span class="wp-label">Research Scientist, Purdue College of Science · AGU Fall Meeting 2024</span>
+                  </li>
+                  <li class="waypoint" style="--i:2">
+                    <span class="wp-mark" aria-hidden="true"></span>
+                    <span class="wp-year mono">2024–25</span>
+                    <span class="wp-label">M.S. Geo-Data Sciences, Purdue</span>
+                  </li>
+                  <li class="waypoint" style="--i:3">
+                    <span class="wp-mark" aria-hidden="true"></span>
+                    <span class="wp-year mono">2025–</span>
+                    <span class="wp-label">GIS Analyst, Purdue University Libraries</span>
+                  </li>
+                  <li class="waypoint wp-next" style="--i:4">
+                    <span class="wp-mark" aria-hidden="true"></span>
+                    <span class="wp-year mono">Next</span>
+                    <span class="wp-label">GIS Analyst · GIS Specialist · GIS Consultant · Environmental Scientist / Consultant · Engineering Consultant</span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="mono">▲ Aniket Dev Roy · <span id="footer-year"></span></p>
+      <p class="mono">West Lafayette, Indiana</p>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,2027 @@
+/* =========================================================
+   Aniket Dev Roy — Portfolio
+   "field atlas" at night — dark chart, petrol teal, crosses
+   ========================================================= */
+
+/* ---------- Tokens (dark only) ---------- */
+:root {
+  --paper: #0c1519;
+  --paper-raised: #121e24;
+  --ink: #e6edea;
+  --muted: #93a6ab;
+  --accent: #3fb8bf;
+  --accent-strong: #6fd2d8;
+  --contour: #c68f63;
+  --line: #1e2d33;
+  --grid: rgba(230, 237, 234, 0.05);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --glow-color: rgba(63, 184, 191, 0.11);
+
+  --font-display: "Bricolage Grotesque", "Public Sans", sans-serif;
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, monospace;
+
+  --nav-h: 64px;
+  --radius: 10px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Environmental mood layer (GSAP-driven) ----------
+   Sits at z-index -1: behind the transparent cross-field canvas (z0)
+   and all content, but in front of the body's base paint. GSAP tweens
+   .env-base's color and each glow's opacity as realms scroll past. */
+.env {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+
+.env-base {
+  position: absolute;
+  inset: 0;
+  /* Canopy navy = opening state; JS interpolates this on scroll */
+  background-color: #0a1626;
+}
+
+.env-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0; /* JS drives per-realm strength */
+  will-change: opacity;
+}
+
+/* Canopy: teal light pooling in the top corners (upper air / satellites) */
+.env-glow--canopy {
+  background:
+    radial-gradient(60% 46% at 4% -8%, rgba(63, 184, 191, 0.32), transparent 60%),
+    radial-gradient(60% 46% at 96% -8%, rgba(111, 210, 216, 0.26), transparent 60%);
+}
+
+/* Roots: warm seismic amber welling up from the bottom edge (deep earth) */
+.env-glow--roots {
+  background:
+    radial-gradient(88% 55% at 50% 110%, rgba(214, 150, 90, 0.30), transparent 62%),
+    radial-gradient(46% 34% at 50% 105%, rgba(198, 143, 99, 0.24), transparent 60%);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-strong);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: 1.1;
+  margin: 0 0 0.5em;
+}
+
+h2 {
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+/* ---------- Layering: cross-field behind everything ---------- */
+#cross-field,
+#particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+main,
+.site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- HUD minimap (realm navigation) ---------- */
+.hud {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+
+.hud-rail {
+  position: absolute;
+  left: 50%;
+  top: 13px;
+  bottom: 13px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to bottom,
+    rgba(230, 237, 234, 0.08),
+    rgba(230, 237, 234, 0.24),
+    rgba(230, 237, 234, 0.08)
+  );
+  border-radius: 2px;
+}
+
+.hud-leaf {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  box-shadow: 0 0 10px 2px rgba(63, 184, 191, 0.75), 0 0 3px rgba(63, 184, 191, 0.9);
+  transform: translate(-50%, calc(13px - 50%)); /* JS updates the px offset */
+  transition: transform 0.5s var(--ease);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hud-node {
+  position: relative;
+  z-index: 1;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(230, 237, 234, 0.22);
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease),
+    box-shadow 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.hud-node:hover {
+  color: var(--ink);
+  border-color: rgba(63, 184, 191, 0.6);
+}
+
+.hud-node.is-active {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--paper));
+  box-shadow: 0 0 0 4px rgba(63, 184, 191, 0.12), 0 0 14px 2px rgba(63, 184, 191, 0.38);
+}
+
+.hud-node:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
+}
+
+.hud-glyph {
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-leaf,
+  .hud-node {
+    transition: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hud {
+    display: none;
+  }
+}
+
+/* ---------- Telemetry HUD (decorative geo-data readouts) ---------- */
+.telemetry {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 0; /* above the particle field, behind main content (z1) */
+  font-family: var(--font-mono);
+  color: #86b0b6; /* muted slate-teal */
+  opacity: 0.34;
+  pointer-events: none;
+  user-select: none;
+}
+
+.telemetry-l {
+  left: 24px;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.telemetry-r {
+  right: 58px; /* just inboard of the minimap track */
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
+  white-space: nowrap;
+}
+
+.tlm-frame {
+  position: relative;
+  border: 1px solid rgba(134, 176, 182, 0.18);
+  border-radius: 6px;
+  padding: 11px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.tlm-frame::before,
+.tlm-frame::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--accent);
+  opacity: 0.55;
+}
+
+.tlm-frame::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.tlm-frame::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.tlm-head {
+  font-size: 0.54rem;
+  letter-spacing: 0.24em;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
+.tlm-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tlm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.7rem;
+}
+
+.tlm-key {
+  color: #5f8a90;
+}
+
+.tlm-val {
+  color: #aad4d9;
+  font-variant-numeric: tabular-nums;
+}
+
+.tlm-matrix {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.tlm-cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(134, 176, 182, 0.16);
+  border-radius: 3px;
+  font-size: 0.62rem;
+  color: #8fbcc2;
+  font-variant-numeric: tabular-nums;
+}
+
+.tlm-sys {
+  color: #86b0b6;
+}
+
+@media (max-width: 1279px) {
+  .telemetry {
+    display: none;
+  }
+}
+
+/* ---------- Custom survey-reticle cursor ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .has-cursor,
+  .has-cursor * {
+    cursor: none !important;
+  }
+}
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition: width 0.25s var(--ease), height 0.25s var(--ease),
+    margin 0.25s var(--ease), opacity 0.25s ease, background-color 0.25s ease;
+}
+
+.cursor.is-visible {
+  opacity: 1;
+}
+
+.cursor::before,
+.cursor::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+  opacity: 0.85;
+}
+
+.cursor::before {
+  left: 50%;
+  top: -6px;
+  width: 1.5px;
+  height: calc(100% + 12px);
+  transform: translateX(-50%);
+}
+
+.cursor::after {
+  top: 50%;
+  left: -6px;
+  height: 1.5px;
+  width: calc(100% + 12px);
+  transform: translateY(-50%);
+}
+
+.cursor.is-active {
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.cursor.is-down {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor {
+    display: none;
+  }
+}
+
+/* ---------- Spotlight glow (cursor-following) ---------- */
+.glow {
+  position: relative;
+}
+
+.glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--gx, 50%) var(--gy, 50%),
+    var(--glow-color),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 3;
+}
+
+.glow:hover::after {
+  opacity: 1;
+}
+
+/* ---------- Navigation ---------- */
+.site-nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 100;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.brand:hover {
+  color: var(--ink);
+}
+
+.brand-mark {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  transition: transform 0.4s var(--ease);
+}
+
+.brand:hover .brand-mark {
+  transform: rotate(-8deg) translateY(-1px);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.2rem, 3vw, 2rem);
+}
+
+.nav-link {
+  position: relative;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.3rem 0;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+
+.nav-link:hover {
+  color: var(--ink);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* ---------- Hero / intro ---------- */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: calc(var(--nav-h) + 2.2rem) clamp(1rem, 5vw, 3rem) 3rem;
+}
+
+.hero-inner {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+.portrait-wrap {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin-bottom: 1.6rem;
+  animation: portrait-float 6.5s ease-in-out infinite;
+}
+
+@keyframes portrait-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.portrait-wrap:hover {
+  animation: portrait-shake 0.45s ease-in-out infinite;
+}
+
+@keyframes portrait-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-1.5px, 1px) rotate(-1.6deg); }
+  40% { transform: translate(1.5px, -1px) rotate(1.4deg); }
+  60% { transform: translate(-1px, -1px) rotate(-1.2deg); }
+  80% { transform: translate(1px, 1px) rotate(1.6deg); }
+}
+
+.portrait-ring {
+  position: absolute;
+  inset: -11px;
+  width: calc(100% + 22px);
+  height: calc(100% + 22px);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  animation: ring-spin 40s linear infinite;
+  transform-origin: center;
+}
+
+.ring-ticks line {
+  stroke: var(--contour);
+  stroke-width: 2;
+}
+
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.portrait {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--paper-raised);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.hero-greeting {
+  position: absolute;
+  left: clamp(1.2rem, 4vw, 2.6rem);
+  bottom: clamp(1.1rem, 3vw, 2rem);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.hello {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  font-weight: 500;
+  color: var(--muted);
+  margin: 0 0 0.1rem;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+.hero-name {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+
+.hero-below {
+  margin-top: 1.8rem;
+}
+
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.72rem 1.35rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s ease,
+    background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #0c1519;
+}
+
+.btn-primary:hover {
+  background: var(--accent-strong);
+  color: #0c1519;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Prominent résumé button beside the primary CTA */
+.btn-resume {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.btn-resume:hover {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.btn-resume svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.social-row {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.social {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper-raised);
+  color: var(--muted);
+  transition: border-color 0.25s ease, color 0.25s ease, transform 0.25s var(--ease);
+}
+
+.social:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.social svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.social .fill-icon {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* ---------- Hero map (full-width, overlaid) ---------- */
+.hero-map-wrap {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--paper-raised);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.map-frame {
+  position: relative;
+  height: clamp(360px, 54vh, 540px);
+}
+
+#hero-map {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--paper);
+}
+
+/* Soft vignette so the dark basemap sits into the panel */
+.map-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 60%, rgba(6, 11, 14, 0.38));
+}
+
+/* Readability scrim behind the greeting */
+.map-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(12, 21, 25, 0.86) 0%, rgba(12, 21, 25, 0.3) 26%, transparent 52%);
+}
+
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* Clock chip, top-left over the map */
+.map-clock {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.9rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(12, 21, 25, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--accent);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.map-clock svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.map-clock .icon-sun {
+  color: var(--contour);
+}
+
+.map-clock .icon-moon {
+  display: none;
+}
+
+.map-clock.is-night .icon-sun {
+  display: none;
+}
+
+.map-clock.is-night .icon-moon {
+  display: block;
+}
+
+/* Portrait floating over the map, right side */
+.hero-portrait {
+  position: absolute;
+  right: clamp(1.2rem, 4.5vw, 3rem);
+  top: calc(50% - 86px);
+  z-index: 4;
+}
+
+.hero-portrait .portrait-wrap {
+  width: 172px;
+  height: 172px;
+  margin: 0;
+}
+
+/* MapLibre chrome tuned to the design */
+.maplibregl-canvas:focus {
+  outline: none;
+}
+
+.maplibregl-ctrl-attrib {
+  background: rgba(12, 21, 25, 0.72) !important;
+  font-family: var(--font-mono);
+  font-size: 0.58rem !important;
+}
+
+.maplibregl-ctrl-attrib a,
+.maplibregl-ctrl-attrib {
+  color: var(--muted) !important;
+}
+
+.maplibregl-ctrl-attrib-button {
+  filter: invert(0.8);
+}
+
+/* Glowing survey dot */
+.pulse-dot {
+  position: relative;
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  box-shadow:
+    0 0 6px 2px rgba(63, 184, 191, 0.8),
+    0 0 18px 6px rgba(63, 184, 191, 0.35);
+}
+
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  animation: pulse-ring 2.2s var(--ease) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ---------- Realm sections (levels of the world tree) ---------- */
+.world-tree {
+  position: relative;
+}
+
+.realm {
+  padding: clamp(3.6rem, 8vw, 5.8rem) clamp(1rem, 5vw, 3rem);
+}
+
+.realm-inner {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+.realm-sub {
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 56ch;
+  margin: -0.3rem 0 0;
+}
+
+.section-head {
+  margin-bottom: 2.6rem;
+}
+
+.eyebrow {
+  color: var(--accent);
+  text-transform: uppercase;
+  margin: 0 0 0.6rem;
+}
+
+.marker {
+  color: var(--contour);
+  margin-right: 0.35rem;
+}
+
+/* ---------- Featured work (inside tree nodes) ---------- */
+.feature {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--paper);
+  background-size: 26px 26px, 26px 26px, auto;
+  padding: 1.3rem 1.2rem;
+}
+
+.feature-visual svg {
+  width: 100%;
+  height: clamp(110px, 13vw, 148px);
+}
+
+/* Hero figures (research imagery) */
+.figure {
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #fff;
+  transition: transform 0.35s var(--ease), border-color 0.3s ease;
+}
+
+.figure:hover {
+  transform: scale(1.015);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.figure img {
+  width: 100%;
+  height: auto;
+  filter: brightness(0.96);
+}
+
+.figure-cap {
+  color: var(--muted);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  margin: 0.7rem 0 0;
+}
+
+/* ---------- Feature body ---------- */
+.feature-body {
+  padding: 1.6rem 1.8rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.card-cat {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--contour);
+  white-space: nowrap;
+}
+
+.card-year {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.feature h3 {
+  font-size: clamp(1.3rem, 2.4vw, 1.55rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.9rem;
+}
+
+/* Problem → Methods → Results */
+.pmr {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+}
+
+.pmr-row {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.pmr dt {
+  color: var(--accent);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+}
+
+.pmr dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.pmr-row:first-child dd {
+  color: var(--ink);
+}
+
+/* Key findings */
+.findings {
+  list-style: none;
+  margin: 0 0 1.2rem;
+  padding: 0.9rem 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 0.4rem;
+}
+
+.findings li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.findings li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* Tools + links */
+.card-foot {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem 1.2rem;
+}
+
+.card-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tools-label {
+  color: var(--contour);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  margin-right: 0.2rem;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent-strong);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+}
+
+.card-links a {
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.card-desc {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* ---------- StoryMap embeds (inside tree nodes) ---------- */
+.embed-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
+  padding: 1.2rem 1.5rem 1.1rem;
+}
+
+.embed-title h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.3rem;
+}
+
+.embed-title .card-desc {
+  max-width: 62ch;
+}
+
+.embed-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 1.1rem;
+  white-space: nowrap;
+}
+
+.embed-meta a {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.embed-frame {
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.embed-frame iframe {
+  display: block;
+  width: 100%;
+  height: 500px;
+  border: 0;
+}
+
+/* ---------- Card visual animations ---------- */
+.viz-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: var(--muted);
+}
+
+.viz-label-end {
+  text-anchor: end;
+}
+
+/* Animation strip beneath a hero figure */
+.visual-anim {
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.7rem;
+}
+
+.visual-anim svg {
+  width: 100%;
+  height: 64px;
+}
+
+.visual-anim.anim-cyclone svg {
+  height: 118px;
+}
+
+.visual-anim.anim-euclid svg {
+  height: 96px;
+}
+
+/* Animation strip inside StoryMap embed cards */
+.embed-anim {
+  border-top: 1px solid var(--line);
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    var(--paper);
+  background-size: 24px 24px, 24px 24px, auto;
+  padding: 0.7rem 1.5rem 0.55rem;
+}
+
+.embed-anim svg {
+  width: 100%;
+  height: 56px;
+}
+
+/* Seismograph: endless scrolling feed */
+.seis-trace {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seis-feed {
+  animation: seis-feed 8s linear infinite;
+}
+
+@keyframes seis-feed {
+  to {
+    transform: translateX(-400px);
+  }
+}
+
+/* Cyclone: spin + travel along the recurving track */
+.tc-track {
+  fill: none;
+  stroke: var(--contour);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 7;
+  animation: tc-flow 1.6s linear infinite;
+}
+
+@keyframes tc-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+.tc-eye {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.tc-arm {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.tc-spin {
+  animation: tc-spin 1.4s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes tc-spin {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Ozone correlations: bars grow when the card scrolls into view */
+.visual-corr {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.corr-row {
+  display: grid;
+  grid-template-columns: 6rem 1fr 4.2rem;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.corr-name {
+  color: var(--muted);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.corr-val {
+  color: var(--accent);
+  font-size: 0.66rem;
+  text-align: right;
+}
+
+.corr-bar {
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 18%, transparent);
+  overflow: hidden;
+}
+
+.corr-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.1s var(--ease);
+  transition-delay: var(--cd, 0s);
+}
+
+.visible .corr-bar i {
+  transform: scaleX(var(--v, 0));
+}
+
+/* Air-flow streamlines */
+.air-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 10 14;
+  opacity: 0.7;
+  animation: air-drift var(--dur, 6s) linear infinite;
+}
+
+.air-line:nth-child(2) {
+  stroke: var(--contour);
+}
+
+@keyframes air-drift {
+  to {
+    stroke-dashoffset: -240;
+  }
+}
+
+/* Euclidean distance: house A to grocery cart B */
+.eu-house path,
+.eu-house rect {
+  fill: none;
+  stroke: var(--contour);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.eu-cart path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.eu-cart circle {
+  fill: var(--accent);
+}
+
+.eu-line {
+  stroke: var(--muted);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 7;
+  animation: eu-flow 1.4s linear infinite;
+}
+
+@keyframes eu-flow {
+  to {
+    stroke-dashoffset: -13;
+  }
+}
+
+.eu-dot {
+  fill: var(--accent-strong);
+  filter: drop-shadow(0 0 4px rgba(63, 184, 191, 0.9));
+}
+
+/* Training modules lighting up in sequence */
+.mod-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.mod-tile {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0.55rem 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  background: var(--paper-raised);
+  animation: mod-pulse 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.6s);
+}
+
+@keyframes mod-pulse {
+  0%, 24%, 100% {
+    border-color: var(--line);
+    color: var(--muted);
+    background: var(--paper-raised);
+  }
+  10% {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+  }
+}
+
+/* =========================================================
+   World Tree (Yggdrasil): scroll-grown trunk + realm nodes
+   ========================================================= */
+
+/* SVG layer spanning the whole document, behind content */
+#tree-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#tree-layer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Trunk: faint full ghost + bright scroll-drawn stroke */
+.trunk-base,
+.twig-base {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 13%, transparent);
+  stroke-width: 2;
+}
+
+.trunk-draw {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 72%, var(--line));
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px rgba(63, 184, 191, 0.3));
+}
+
+.twig-draw {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 60%, var(--line));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Hover glow: hovered node's twig + trunk all the way down to the roots */
+.trunk-glow,
+.twig-glow {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  filter: drop-shadow(0 0 9px rgba(63, 184, 191, 0.85));
+}
+
+.trunk-glow {
+  stroke-width: 3;
+}
+
+.twig-glow {
+  stroke-width: 2.6;
+}
+
+.trunk-glow.on,
+.twig-glow.on {
+  opacity: 1;
+}
+
+/* Decorative limbs: teal canopy branches, copper root strands */
+.limb {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.limb-canopy {
+  stroke: color-mix(in srgb, var(--accent) 45%, transparent);
+  stroke-width: 1.8;
+}
+
+.limb-root {
+  stroke: color-mix(in srgb, var(--contour) 62%, transparent);
+  stroke-width: 2.2;
+}
+
+/* Junction markers on the trunk, lit as growth passes them */
+.junction {
+  fill: var(--paper);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  opacity: 0.3;
+  transition: opacity 0.4s ease, fill 0.4s ease;
+}
+
+.junction.lit {
+  opacity: 1;
+  fill: var(--accent);
+}
+
+/* ---------- Tree nodes: geometric data-node tiles ---------- */
+.node-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.8rem, 6vw, 4.4rem);
+}
+
+.tree-node {
+  position: relative;
+  width: min(620px, 100%);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: transform 0.35s var(--ease), border-color 0.3s ease,
+    box-shadow 0.35s ease;
+}
+
+.tree-node.is-embed {
+  width: min(820px, 100%);
+}
+
+@media (max-width: 1150px) {
+  .tree-node.is-embed {
+    width: min(700px, 100%);
+  }
+}
+
+.node-left {
+  margin-right: auto;
+}
+
+.node-right {
+  margin-left: auto;
+}
+
+.node-center {
+  margin-left: auto;
+  margin-right: auto;
+  width: min(920px, 100%);
+}
+
+.tree-node:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: var(--shadow);
+}
+
+/* Inner wrapper clips media to the rounded frame while chips overflow */
+.node-body {
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* Survey-bracket corners */
+.node-corner {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--contour);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: border-color 0.3s ease;
+  z-index: 2;
+}
+
+.c-tl {
+  top: -2px;
+  left: -2px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: var(--radius);
+}
+
+.c-br {
+  bottom: -2px;
+  right: -2px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: var(--radius);
+}
+
+.tree-node:hover .node-corner {
+  border-color: var(--accent-strong);
+}
+
+/* Realm coordinate tag */
+.node-tag {
+  position: absolute;
+  top: -0.78em;
+  left: 16px;
+  z-index: 2;
+  padding: 0.16rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--accent);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.node-right .node-tag {
+  left: auto;
+  right: 16px;
+}
+
+/* Twig port: the diamond where the branch plugs into the tile */
+.node-port {
+  position: absolute;
+  top: 78px;
+  width: 11px;
+  height: 11px;
+  transform: rotate(45deg);
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  z-index: 2;
+  transition: background-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.node-left .node-port {
+  right: -6px;
+}
+
+.node-right .node-port {
+  left: -6px;
+}
+
+.node-center .node-port {
+  left: 50%;
+  top: -6px;
+  margin-left: -5.5px;
+}
+
+.tree-node.grown .node-port {
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px rgba(63, 184, 191, 0.55);
+}
+
+.tree-node:hover .node-port {
+  background: var(--accent-strong);
+  box-shadow: 0 0 12px 3px rgba(63, 184, 191, 0.85);
+}
+
+/* Taproot / About chamber */
+.about-node {
+  margin-top: clamp(3.2rem, 7vw, 5rem);
+}
+
+.about-node .node-body {
+  padding: 2rem clamp(1.2rem, 4vw, 2.4rem) 2.2rem;
+}
+
+.about-node .section-head {
+  margin-bottom: 1.6rem;
+}
+
+/* ---------- About header extras ---------- */
+.about-role {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  color: var(--contour);
+  margin: -1rem 0 0.4rem;
+}
+
+.about-toolkit {
+  color: var(--accent);
+  font-size: 0.74rem;
+  margin: 0 0 1.6rem;
+}
+
+/* ---------- About: career traverse ---------- */
+.about-lead {
+  margin-bottom: clamp(2.4rem, 5vw, 3.4rem);
+}
+
+.about-text {
+  margin: 0;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+.traverse {
+  position: relative;
+  padding-top: 6px;
+}
+
+.traverse-line {
+  position: absolute;
+  top: 11px;
+  left: 6px;
+  right: 6px;
+  border-top: 2px dashed color-mix(in srgb, var(--accent) 45%, var(--line));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.4s var(--ease) 0.15s;
+}
+
+.traverse.visible .traverse-line {
+  transform: scaleX(1);
+}
+
+.waypoints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0 1.4rem;
+}
+
+.waypoint {
+  position: relative;
+  padding-top: 1.9rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  transition-delay: calc(0.4s + var(--i) * 0.22s);
+}
+
+.traverse.visible .waypoint {
+  opacity: 1;
+  transform: none;
+}
+
+.wp-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 13px;
+  height: 13px;
+  background: var(--accent);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.wp-next .wp-mark {
+  clip-path: none;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  box-shadow:
+    0 0 6px 2px rgba(63, 184, 191, 0.7),
+    0 0 16px 5px rgba(63, 184, 191, 0.3);
+}
+
+.wp-next .wp-mark::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  animation: pulse-ring 2.2s var(--ease) infinite;
+}
+
+.wp-year {
+  display: block;
+  color: var(--contour);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.wp-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.wp-next .wp-label {
+  color: var(--ink);
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 1.6rem clamp(1rem, 5vw, 3rem);
+}
+
+.footer-inner {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.footer-inner p {
+  margin: 0;
+}
+
+/* ---------- Motion: load + scroll reveals ---------- */
+.reveal-load {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: rise 0.8s var(--ease) forwards;
+  animation-delay: calc(var(--d, 0) * 0.12s);
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal-load,
+  .reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+
+  .seis-feed,
+  .tc-spin,
+  .tc-track,
+  .air-line,
+  .eu-line,
+  .mod-tile,
+  .portrait-wrap,
+  .portrait-wrap:hover,
+  .portrait-ring,
+  .wp-next .wp-mark::after,
+  .pulse-dot::after {
+    animation: none;
+  }
+
+  .trunk-glow,
+  .twig-glow,
+  .junction,
+  .node-port,
+  .node-corner,
+  .tree-node {
+    transition: none;
+  }
+
+  .corr-bar i {
+    transition: none;
+    transform: scaleX(var(--v, 0));
+  }
+
+  .traverse-line {
+    transform: none;
+    transition: none;
+  }
+
+  .waypoint {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .btn:hover,
+  .tree-node:hover,
+  .figure:hover,
+  .social:hover {
+    transform: none;
+  }
+
+  .glow::after {
+    display: none;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .map-frame {
+    height: clamp(300px, 46vh, 420px);
+  }
+
+  .hero-portrait {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .hero-portrait .portrait-wrap {
+    width: 108px;
+    height: 108px;
+  }
+}
+
+/* The tree simplifies to a straight timeline on small screens:
+   the SVG canopy fades out; a quiet vertical line takes over. */
+@media (max-width: 900px) {
+  #tree-layer {
+    display: none;
+  }
+
+  .world-tree {
+    position: relative;
+  }
+
+  .world-tree::before {
+    content: "";
+    position: absolute;
+    top: 0.8rem;
+    bottom: 0.8rem;
+    left: calc(clamp(1rem, 5vw, 3rem) + 5px);
+    width: 2px;
+    background: color-mix(in srgb, var(--accent) 28%, var(--line));
+  }
+
+  .realm-inner {
+    padding-left: 1.7rem;
+  }
+
+  .tree-node,
+  .tree-node.is-embed,
+  .node-center {
+    width: 100%;
+  }
+
+  .node-port {
+    display: none;
+  }
+
+  /* Straight connector from timeline to each node */
+  .tree-node::before {
+    content: "";
+    position: absolute;
+    top: 42px;
+    left: calc(-1.7rem + 6px);
+    width: calc(1.7rem - 7px);
+    height: 2px;
+    background: color-mix(in srgb, var(--accent) 40%, var(--line));
+  }
+
+  .about-node::before {
+    top: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* Traverse turns vertical */
+  .traverse {
+    padding-top: 0;
+  }
+
+  .traverse-line {
+    top: 4px;
+    bottom: 4px;
+    left: 5px;
+    right: auto;
+    border-top: none;
+    border-left: 2px dashed color-mix(in srgb, var(--accent) 45%, var(--line));
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+
+  .traverse.visible .traverse-line {
+    transform: scaleY(1);
+  }
+
+  .waypoints {
+    grid-template-columns: 1fr;
+    gap: 1.5rem 0;
+  }
+
+  .waypoint {
+    padding: 0 0 0 2rem;
+  }
+
+  .wp-mark {
+    top: 3px;
+  }
+}
+
+@media (max-width: 560px) {
+  .pmr-row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .embed-frame iframe {
+    height: 420px;
+  }
+}
