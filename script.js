@@ -763,8 +763,8 @@ const HUD_VIZ = {
   training: {
     type: "sdi",
     label: "SDI LAYER STACK",
-    foot: "4 PLANES \u00b7 WGS84",
-    desc: "A map is assembled as a stack of aligned layers sharing one footprint. <b>A</b> is the base map — reference terrain and coastlines. <b>B</b> is a raster layer — gridded, continuous data such as satellite imagery or a heatmap. <b>C</b> is a polygon vector layer — bounded areas like regions or zones. <b>D</b> is a point vector layer — discrete locations. Registered to the same coordinate system, the four planes combine into a single map: the core idea behind a Spatial Data Infrastructure (SDI).",
+    foot: "4 LAYERS \u00b7 WGS84",
+    desc: "A map is assembled as a stack of aligned layers sharing one footprint, shown here as four panes. <b>A</b> is the base map: reference terrain and coastlines. <b>B</b> is a raster layer of gridded, continuous data such as satellite imagery or a heatmap. <b>C</b> is a polygon vector layer of bounded areas like regions or zones. <b>D</b> is a point vector layer of discrete locations. Registered to the same coordinate system, the four layers combine into a single map: the core idea behind a Spatial Data Infrastructure (SDI).",
   },
   seismic: {
     type: "wavefront",
@@ -1930,34 +1930,38 @@ function wavefrontFactory({ ctx, w, h }) {
   };
 }
 
-/* --- 3. MIDGARD N-03: SDI isometric layer stack --- */
+/* --- 3. MIDGARD N-03: SDI flat 2x2 layer grid --- */
 function sdiFactory({ ctx, w, h }) {
   const TAU = Math.PI * 2;
   const foot = document.querySelector(".hud-viz--sdi [data-viz-foot]");
-  const cx = w * 0.5, cy = h * 0.66;
-  const ux = Math.min(w * 0.3, 130), uy = ux * 0.5;
-  const gap = Math.min(h * 0.12, 34);
-  const isoX = (px, py) => cx + (px - py) * ux;
-  const isoY = (px, py, z) => cy + (px + py) * uy * 0.5 - z * gap;
-  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-  const Z_BASE = 0, Z_RAST = 1, Z_POLY = 2, Z_PT = 3;
 
-  const planePath = (z) => {
-    ctx.beginPath();
-    corners.forEach(([px, py], i) => {
-      const X = isoX(px, py), Y = isoY(px, py, z);
-      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
-    });
-    ctx.closePath();
-  };
-  const strokePoly = (poly, z) => {
-    ctx.beginPath();
-    poly.forEach(([px, py], i) => {
-      const X = isoX(px, py), Y = isoY(px, py, z);
-      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
-    });
-  };
+  /* --- flat 2x2 grid geometry: A top-left, B top-right, C bottom-left, D bottom-right --- */
+  const pad = 10;      /* outer padding around the whole grid  */
+  const gap = 12;      /* gap between the four panes           */
+  const headH = 17;    /* header strip (letter + caption)      */
+  const inset = 8;     /* content inset inside each pane        */
+  const cellW = (w - pad * 2 - gap) / 2;
+  const cellH = (h - pad * 2 - gap) / 2;
 
+  const PANES = [
+    { key: "A", cap: "BASE MAP", col: 0, row: 0 },
+    { key: "B", cap: "RASTER", col: 1, row: 0 },
+    { key: "C", cap: "POLYGON", col: 0, row: 1 },
+    { key: "D", cap: "POINTS", col: 1, row: 1 },
+  ];
+  PANES.forEach((p) => {
+    p.x = pad + p.col * (cellW + gap);
+    p.y = pad + p.row * (cellH + gap);
+    p.bx = p.x + inset;            /* content box (below the header) */
+    p.by = p.y + headH;
+    p.bw = cellW - inset * 2;
+    p.bh = cellH - headH - inset;
+  });
+  /* normalized [-1,1] -> a pane's content-box pixels */
+  const NX = (p, u) => p.bx + (u * 0.5 + 0.5) * p.bw;
+  const NY = (p, v) => p.by + (v * 0.5 + 0.5) * p.bh;
+
+  /* stylized geometry in [-1,1] space, reused per layer */
   const CONT = [
     [[-0.8, -0.5], [-0.4, -0.6], [-0.2, -0.4], [-0.3, -0.1], [-0.6, -0.1], [-0.8, -0.3]],
     [[0.1, 0.0], [0.4, -0.1], [0.6, 0.2], [0.4, 0.5], [0.1, 0.5], [0.0, 0.2]],
@@ -1968,127 +1972,142 @@ function sdiFactory({ ctx, w, h }) {
     [[0.1, -0.5], [0.5, -0.4], [0.5, 0.0], [0.2, 0.0]],
     [[-0.1, 0.3], [0.3, 0.3], [0.35, 0.7], [-0.05, 0.7]],
   ];
-  const PTS = Array.from({ length: 11 }, () => [
-    (Math.random() * 2 - 1) * 0.85,
-    (Math.random() * 2 - 1) * 0.85,
+  const PTS = Array.from({ length: 9 }, () => [
+    (Math.random() * 2 - 1) * 0.82,
+    (Math.random() * 2 - 1) * 0.82,
     Math.random() * TAU,
   ]);
-  const connectors = [PTS[2], PTS[6]];
-  const RN = 8;
+  const RN = 6; /* raster cells per side inside pane B */
   let t = 0;
+
+  const tracePoly = (p, poly) => {
+    ctx.beginPath();
+    poly.forEach(([u, v], i) => {
+      const X = NX(p, u), Y = NY(p, v);
+      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+    });
+  };
+
+  /* faint reference graticule inside a pane's content box */
+  const graticule = (p, n) => {
+    ctx.strokeStyle = "rgba(130,185,195,0.12)";
+    ctx.lineWidth = 0.5;
+    for (let k = 1; k < n; k++) {
+      const gx = p.bx + (p.bw * k) / n;
+      const gy = p.by + (p.bh * k) / n;
+      ctx.beginPath(); ctx.moveTo(gx, p.by); ctx.lineTo(gx, p.by + p.bh); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p.bx, gy); ctx.lineTo(p.bx + p.bw, gy); ctx.stroke();
+    }
+  };
+
+  /* pane frame + corner bracket + header (letter + caption) */
+  const chrome = (p) => {
+    ctx.fillStyle = "rgba(10,22,38,0.55)";
+    ctx.fillRect(p.x, p.y, cellW, cellH);
+    ctx.strokeStyle = "rgba(130,185,195,0.3)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(p.x + 0.5, p.y + 0.5, cellW - 1, cellH - 1);
+    /* top-left corner bracket for the HUD feel */
+    ctx.strokeStyle = "rgba(63,184,191,0.7)";
+    ctx.lineWidth = 1.3;
+    const tk = 8;
+    ctx.beginPath();
+    ctx.moveTo(p.x + 2, p.y + 2 + tk);
+    ctx.lineTo(p.x + 2, p.y + 2);
+    ctx.lineTo(p.x + 2 + tk, p.y + 2);
+    ctx.stroke();
+    /* dashed header divider */
+    ctx.strokeStyle = "rgba(63,184,191,0.2)";
+    ctx.setLineDash([3, 3]);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(p.x + 6, p.y + headH - 2);
+    ctx.lineTo(p.x + cellW - 6, p.y + headH - 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    /* label letter + small caption */
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(170,216,226,0.95)";
+    ctx.font = "bold 12px monospace";
+    ctx.fillText(p.key, p.x + 14, p.y + headH * 0.5 + 1);
+    ctx.fillStyle = "rgba(134,176,182,0.6)";
+    ctx.font = "7px monospace";
+    ctx.fillText(p.cap, p.x + 26, p.y + headH * 0.5 + 1);
+  };
 
   return (dt, now) => {
     t += dt;
     ctx.clearRect(0, 0, w, h);
 
-    /* Layer 0 — base map wireframe */
-    planePath(Z_BASE);
-    ctx.fillStyle = "rgba(10,22,38,0.5)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(130,185,195,0.4)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.strokeStyle = "rgba(63,184,191,0.4)";
-    for (const poly of CONT) { strokePoly(poly, Z_BASE); ctx.stroke(); }
+    PANES.forEach((p) => {
+      chrome(p);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(p.bx, p.by, p.bw, p.bh);
+      ctx.clip();
 
-    /* Layer 1 — multicolored raster grid */
-    for (let i = 0; i < RN; i++) {
-      for (let j = 0; j < RN; j++) {
-        const x0 = -1 + (i / RN) * 2, x1 = -1 + ((i + 1) / RN) * 2;
-        const y0 = -1 + (j / RN) * 2, y1 = -1 + ((j + 1) / RN) * 2;
-        ctx.beginPath();
-        ctx.moveTo(isoX(x0, y0), isoY(x0, y0, Z_RAST));
-        ctx.lineTo(isoX(x1, y0), isoY(x1, y0, Z_RAST));
-        ctx.lineTo(isoX(x1, y1), isoY(x1, y1, Z_RAST));
-        ctx.lineTo(isoX(x0, y1), isoY(x0, y1, Z_RAST));
-        ctx.closePath();
-        const hue = (i * 40 + j * 23 + t * 0.02) % 360;
-        const sh = 0.28 + 0.14 * Math.sin(t * 0.004 + i + j);
-        ctx.fillStyle = `hsla(${hue | 0},60%,55%,${sh.toFixed(2)})`;
-        ctx.fill();
+      if (p.key === "A") {
+        /* base map: graticule + glowing continent line art */
+        graticule(p, 4);
+        ctx.strokeStyle = "rgba(63,184,191,0.6)";
+        ctx.lineWidth = 1.1;
+        ctx.shadowBlur = 3;
+        ctx.shadowColor = "rgba(63,184,191,0.5)";
+        for (const poly of CONT) {
+          tracePoly(p, poly);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(63,184,191,0.06)";
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+      } else if (p.key === "B") {
+        /* raster: shimmering multicolored grid cells */
+        const cw = p.bw / RN, ch = p.bh / RN;
+        for (let i = 0; i < RN; i++) {
+          for (let j = 0; j < RN; j++) {
+            const hue = (i * 40 + j * 23 + t * 0.02) % 360;
+            const sh = 0.32 + 0.16 * Math.sin(t * 0.004 + i + j);
+            ctx.fillStyle = `hsla(${hue | 0},60%,55%,${sh.toFixed(2)})`;
+            ctx.fillRect(p.bx + i * cw + 0.4, p.by + j * ch + 0.4, cw - 0.8, ch - 0.8);
+          }
+        }
+      } else if (p.key === "C") {
+        /* polygon vectors: hollow glowing polygons over a faint grid */
+        graticule(p, 4);
+        const glow = 5 + 3 * (0.5 + 0.5 * Math.sin(t * 0.004));
+        for (const poly of POLY) {
+          tracePoly(p, poly);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(63,184,191,0.07)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(63,184,191,0.75)";
+          ctx.lineWidth = 1.4;
+          ctx.shadowBlur = glow;
+          ctx.shadowColor = "rgba(63,184,191,0.6)";
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+      } else {
+        /* point vectors: pulsing glowing nodes over a faint grid */
+        graticule(p, 4);
+        for (const pt of PTS) {
+          const X = NX(p, pt[0]), Y = NY(p, pt[1]);
+          const pulse = 0.5 + 0.5 * Math.sin(t * 0.005 + pt[2]);
+          ctx.beginPath();
+          ctx.arc(X, Y, 2 + pulse * 2, 0, TAU);
+          ctx.fillStyle = `rgba(200,245,248,${(0.5 + 0.4 * pulse).toFixed(2)})`;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = "rgba(63,184,191,0.8)";
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
       }
-    }
-    planePath(Z_RAST);
-    ctx.strokeStyle = "rgba(130,185,195,0.3)";
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    /* Layer 2 — hollow glowing polygon vectors */
-    planePath(Z_POLY);
-    ctx.strokeStyle = "rgba(130,185,195,0.18)";
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-    for (const poly of POLY) {
-      strokePoly(poly, Z_POLY);
-      ctx.closePath();
-      ctx.fillStyle = "rgba(63,184,191,0.06)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(63,184,191,0.7)";
-      ctx.lineWidth = 1.4;
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = "rgba(63,184,191,0.6)";
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-    }
-
-    /* Layer 3 — pulsing point nodes floating above */
-    planePath(Z_PT);
-    ctx.strokeStyle = "rgba(130,185,195,0.12)";
-    ctx.lineWidth = 0.6;
-    ctx.stroke();
-    for (const p of PTS) {
-      const X = isoX(p[0], p[1]), Y = isoY(p[0], p[1], Z_PT + 0.15);
-      const pulse = 0.5 + 0.5 * Math.sin(t * 0.005 + p[2]);
-      ctx.beginPath();
-      ctx.arc(X, Y, 2 + pulse * 2, 0, TAU);
-      ctx.fillStyle = `rgba(200,245,248,${(0.5 + 0.4 * pulse).toFixed(2)})`;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = "rgba(63,184,191,0.8)";
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    /* HUD connectors: a point linked straight down through every layer */
-    for (const p of connectors) {
-      const X = isoX(p[0], p[1]);
-      const yTop = isoY(p[0], p[1], Z_PT + 0.15);
-      const yBot = isoY(p[0], p[1], Z_BASE);
-      ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = "rgba(63,184,191,0.5)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(X, yTop);
-      ctx.lineTo(X, yBot);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      [Z_BASE, Z_RAST, Z_POLY, Z_PT].forEach((z) => {
-        const Y = isoY(p[0], p[1], z);
-        ctx.beginPath();
-        ctx.arc(X, Y, 2, 0, TAU);
-        ctx.fillStyle = "rgba(63,184,191,0.85)";
-        ctx.fill();
-      });
-      const tp = (t * 0.0004) % 1;
-      const Yp = yTop + (yBot - yTop) * tp;
-      ctx.beginPath();
-      ctx.arc(X, Yp, 2.6, 0, TAU);
-      ctx.fillStyle = "rgba(255,255,255,0.9)";
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = "rgba(63,184,191,0.9)";
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    /* layer labels A–D (keyed to the panel description below the animation) */
-    ctx.fillStyle = "rgba(170,216,226,0.92)";
-    ctx.font = "bold 11px monospace";
-    ctx.textAlign = "left";
-    const labels = ["A", "B", "C", "D"];
-    [Z_BASE, Z_RAST, Z_POLY, Z_PT].forEach((z, i) => {
-      ctx.fillText(labels[i], isoX(-1, 1) - 8, isoY(-1, 1, z) + 4);
+      ctx.restore();
     });
 
-    if (foot) foot.textContent = `SDI \u00b7 ${PTS.length} NODES \u00b7 4 PLANES`;
+    if (foot) foot.textContent = `SDI \u00b7 ${PTS.length} NODES \u00b7 2\u00d72 GRID`;
   };
 }
 
