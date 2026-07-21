@@ -748,21 +748,14 @@ function embedInner(e) {
    Keyed by project slug. Each appears once; the panel sits in the tile's outer
    gap (tc/food/training → right, seismic → left, following node alternation). */
 const HUD_VIZ = {
-  tc: { type: "globe", label: "ORBITAL TRACK // 1980\u20132016", foot: "1980 \u25b8 INIT" },
-  food: { type: "grid", label: "GRID RESOLUTION MATRIX", foot: "USDA ATLAS \u27f7 OPEN CENSUS" },
-  training: { type: "pipeline", label: "PIPELINE DEP. TREE", foot: "STDOUT // GEOSPATIAL CLI" },
-  seismic: { type: "wave", label: "DUAL-WAVEFORM MONITOR", foot: "V_S TARGET 1.80 km/s" },
+  tc: { type: "cyclo", label: "ATLANTIC CYCLOGENESIS", foot: "GENESIS \u00b7 W. AFRICA COAST" },
+  food: { type: "decay", label: "EUCLIDEAN DECAY RASTER", foot: "ACCESS FIELD \u00b7 LIVE RECOMPUTE" },
+  training: { type: "sdi", label: "SDI LAYER STACK", foot: "4 PLANES \u00b7 WGS84" },
+  seismic: { type: "wavefront", label: "HYPOCENTER WAVEFRONT", foot: "V_S 1.8 km/s \u00b7 REFLECT" },
 };
 
 function vizStage(type) {
-  if (type === "globe") return `<canvas id="viz-globe" class="viz-canvas"></canvas>`;
-  if (type === "grid")
-    return `<canvas id="viz-grid" class="viz-canvas"></canvas>
-      <div class="grid-legend mono"><span class="gl gl-usda">USDA \u00b7 LO-RES</span><span class="gl gl-open">OPEN \u00b7 HI-RES</span></div>`;
-  if (type === "wave") return `<canvas id="viz-wave" class="viz-canvas"></canvas>`;
-  if (type === "pipeline")
-    return `<div class="pipe" id="viz-pipeline"></div><div class="pipe-term mono" id="viz-term"></div>`;
-  return "";
+  return `<canvas id="viz-${type}" class="viz-canvas"></canvas>`;
 }
 
 function vizPanel(viz) {
@@ -1577,431 +1570,502 @@ function mountViz(canvas, factory) {
   });
 }
 
-/* --- 1. CANOPY N-01: spinning wireframe globe + hurricane pathways --- */
-function globeFactory({ ctx, w, h }) {
+/* --- 1. CANOPY N-01: Atlantic cyclogenesis & landfall simulation --- */
+function cycloFactory({ ctx, w, h }) {
   const TAU = Math.PI * 2;
   const D2R = Math.PI / 180;
-  const R = Math.min(w, h) * 0.4;
-  const cx = w / 2;
-  const cy = h * 0.5;
-  const tilt = 0.4;
-  let rot = -1.2;
-  const Y0 = 1980;
-  const Y1 = 2016;
-  let year = Y0;
-  let yAcc = 0;
-  const foot = document.querySelector(".hud-viz--globe [data-viz-foot]");
+  const foot = document.querySelector(".hud-viz--cyclo [data-viz-foot]");
 
-  /* [startYear, hue, waypoints[lat,lon]] — sample historical basins */
-  const TRACKS = [
-    [1980, "o", [[12, -40], [15, -52], [19, -63], [24, -72], [29, -79], [33, -82]]],
-    [1985, "t", [[10, -30], [13, -44], [17, -56], [22, -66], [27, -73]]],
-    [1990, "t", [[14, -46], [18, -58], [23, -68], [28, -74], [32, -77]]],
-    [1995, "o", [[9, -24], [12, -38], [16, -50], [21, -61], [26, -70], [31, -75]]],
-    [1999, "t", [[15, -55], [20, -64], [25, -71], [30, -76], [34, -79]]],
-    [2004, "o", [[11, -33], [15, -47], [20, -59], [25, -68], [29, -73]]],
-    [2008, "t", [[13, -42], [17, -54], [22, -64], [27, -71], [31, -75]]],
-    [2012, "t", [[16, -58], [21, -67], [26, -73], [31, -77]]],
-    [2016, "o", [[10, -28], [14, -42], [19, -55], [24, -65], [28, -71], [32, -75]]],
-    [1988, "t", [[12, -110], [15, -122], [19, -133], [23, -142]]],
-    [2010, "t", [[14, -105], [18, -116], [22, -127], [26, -136]]],
-  ];
-
-  const proj = (latD, lonD) => {
-    const lat = latD * D2R;
-    const lon = lonD * D2R + rot;
-    const cosc = Math.sin(tilt) * Math.sin(lat) + Math.cos(tilt) * Math.cos(lat) * Math.cos(lon);
-    const x = cx + R * Math.cos(lat) * Math.sin(lon);
-    const y = cy - R * (Math.cos(tilt) * Math.sin(lat) - Math.sin(tilt) * Math.cos(lat) * Math.cos(lon));
-    return [x, y, cosc > 0];
+  /* Stylized continent outlines in normalized [0,1] canvas space (Atlantic view) */
+  const CONT = {
+    na: [[0.02,0.10],[0.10,0.05],[0.20,0.06],[0.28,0.10],[0.34,0.08],[0.40,0.12],[0.42,0.20],[0.38,0.24],[0.40,0.30],[0.35,0.34],[0.33,0.40],[0.30,0.42],[0.30,0.49],[0.26,0.46],[0.24,0.40],[0.20,0.36],[0.14,0.34],[0.10,0.28],[0.06,0.22],[0.04,0.16]],
+    sa: [[0.30,0.50],[0.36,0.52],[0.40,0.58],[0.44,0.66],[0.44,0.74],[0.42,0.82],[0.38,0.90],[0.34,0.96],[0.32,0.90],[0.30,0.80],[0.28,0.70],[0.27,0.60],[0.28,0.54]],
+    eu: [[0.64,0.14],[0.70,0.10],[0.76,0.06],[0.82,0.04],[0.80,0.10],[0.78,0.14],[0.74,0.16],[0.72,0.20],[0.68,0.20],[0.66,0.16]],
+    af: [[0.66,0.22],[0.72,0.20],[0.80,0.22],[0.86,0.28],[0.90,0.36],[0.90,0.46],[0.86,0.56],[0.82,0.66],[0.78,0.74],[0.74,0.82],[0.70,0.80],[0.68,0.72],[0.64,0.62],[0.60,0.52],[0.58,0.44],[0.60,0.36],[0.62,0.28]],
   };
-  const poly = (points) => {
+  const NA = CONT.na;
+  const mx = (nx) => nx * w;
+  const my = (ny) => ny * h;
+
+  const contPath = (pts) => {
     ctx.beginPath();
-    let started = false;
-    for (const [la, lo] of points) {
-      const [x, y, vis] = proj(la, lo);
-      if (!vis) {
-        started = false;
-        continue;
-      }
-      if (!started) {
-        ctx.moveTo(x, y);
-        started = true;
-      } else ctx.lineTo(x, y);
+    pts.forEach(([nx, ny], i) => {
+      const X = mx(nx), Y = my(ny);
+      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+    });
+    ctx.closePath();
+  };
+  /* ray-casting point-in-polygon (normalized space) for landfall over N. America */
+  const inNA = (px, py) => {
+    const x = px / w, y = py / h;
+    let inside = false;
+    for (let i = 0, j = NA.length - 1; i < NA.length; j = i++) {
+      const xi = NA[i][0], yi = NA[i][1], xj = NA[j][0], yj = NA[j][1];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
     }
-    ctx.stroke();
+    return inside;
+  };
+
+  const storms = [];
+  let spawnAcc = 0;
+  const SPAWN = 1500;
+  const MAX = 6;
+  const spawn = () => {
+    const oy = 0.40 + Math.random() * 0.10;
+    const ox = 0.585 + Math.random() * 0.02;
+    const speed = Math.min(w, h) * (0.00010 + Math.random() * 0.00006);
+    const turn = 0.006 + Math.random() * 0.020; /* deg per ms, steers N then NE */
+    storms.push({
+      x: mx(ox), y: my(oy),
+      theta: 190 + Math.random() * 15, /* 0=E 90=down 180=W 270=up → WNW start */
+      speed, turn,
+      willLandfall: Math.random() < 0.5,
+      wob: Math.random() * TAU, wobSp: 0.002 + Math.random() * 0.003,
+      trail: [], age: 0, life: 9000 + Math.random() * 4000,
+      alpha: 0, state: "grow",
+      hue: Math.random() < 0.25 ? "o" : "t",
+    });
   };
 
   return (dt, now) => {
-    rot += dt * 0.00026;
-    yAcc += dt;
-    if (yAcc > 120) {
-      yAcc = 0;
-      year = year + 1 > Y1 ? Y0 : year + 1;
-      if (foot) foot.textContent = `${year} \u25b8 ${year === Y0 ? "REWIND" : "ATL/PAC BASINS"}`;
+    ctx.clearRect(0, 0, w, h);
+
+    /* faint HUD graticule */
+    ctx.strokeStyle = "rgba(120,180,190,0.07)";
+    ctx.lineWidth = 0.5;
+    for (let gx = 0; gx <= 1.001; gx += 0.125) { ctx.beginPath(); ctx.moveTo(mx(gx), 0); ctx.lineTo(mx(gx), h); ctx.stroke(); }
+    for (let gy = 0; gy <= 1.001; gy += 0.16) { ctx.beginPath(); ctx.moveTo(0, my(gy)); ctx.lineTo(w, my(gy)); ctx.stroke(); }
+
+    /* continents */
+    for (const k in CONT) {
+      contPath(CONT[k]);
+      ctx.fillStyle = "rgba(63,184,191,0.045)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(130,185,195,0.28)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
 
-    ctx.clearRect(0, 0, w, h);
+    /* genesis marker off West Africa */
+    const gpx = mx(0.585), gpy = my(0.45);
     ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, TAU);
-    const g = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
-    g.addColorStop(0, "rgba(16,32,48,0.75)");
-    g.addColorStop(1, "rgba(7,16,26,0.92)");
-    ctx.fillStyle = g;
-    ctx.fill();
+    ctx.arc(gpx, gpy, 3 + Math.sin(now * 0.004) * 1.2, 0, TAU);
+    ctx.strokeStyle = "rgba(214,150,90,0.5)";
     ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(63,184,191,0.4)";
     ctx.stroke();
 
-    ctx.lineWidth = 0.6;
-    ctx.strokeStyle = "rgba(120,180,190,0.14)";
-    for (let lo = -180; lo < 180; lo += 30) {
-      const pts = [];
-      for (let la = -80; la <= 80; la += 6) pts.push([la, lo]);
-      poly(pts);
-    }
-    for (let la = -60; la <= 60; la += 30) {
-      const pts = [];
-      for (let lo = -180; lo <= 180; lo += 6) pts.push([la, lo]);
-      poly(pts);
-    }
+    spawnAcc += dt;
+    if (spawnAcc > SPAWN && storms.length < MAX) { spawnAcc = 0; spawn(); }
 
-    for (const [sy, hue, pts] of TRACKS) {
-      const active = sy <= year;
-      const col = hue === "o" ? "214,150,90" : "63,184,191";
-      ctx.lineWidth = active ? 1.6 : 0.8;
-      ctx.strokeStyle = `rgba(${col},${active ? 0.75 : 0.13})`;
-      ctx.shadowBlur = active ? 8 : 0;
-      ctx.shadowColor = `rgba(${col},0.7)`;
-      poly(pts);
-      ctx.shadowBlur = 0;
-      if (active) {
-        const seg = (now * 0.00012) % 1;
-        const idx = seg * (pts.length - 1);
-        const i0 = Math.floor(idx);
-        const f = idx - i0;
-        const a = pts[i0];
-        const b = pts[Math.min(i0 + 1, pts.length - 1)];
-        const [x, y, vis] = proj(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f);
-        if (vis) {
+    for (const s of storms) {
+      s.age += dt;
+      if (s.state === "grow") s.alpha = Math.min(1, s.alpha + dt * 0.003);
+      s.theta += s.turn * dt * (s.willLandfall ? 0.35 : 1); /* landfall storms curve less */
+      s.wob += s.wobSp * dt;
+      const th = (s.theta + Math.sin(s.wob) * 6) * D2R; /* squiggle */
+      s.x += Math.cos(th) * s.speed * dt;
+      s.y += Math.sin(th) * s.speed * dt;
+      s.trail.push([s.x, s.y]);
+      if (s.trail.length > 36) s.trail.shift();
+
+      const landed = inNA(s.x, s.y);
+      const off = s.x < -6 || s.y < -6 || s.y > h + 6;
+      if ((landed || off || s.age > s.life) && s.state === "grow") s.state = "die";
+      if (s.state === "die") s.alpha -= dt * 0.004;
+
+      const col = s.hue === "o" ? "214,150,90" : "63,184,191";
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.strokeStyle = `rgba(${col},${(0.5 * s.alpha).toFixed(3)})`;
+      ctx.beginPath();
+      s.trail.forEach(([tx, ty], i) => (i ? ctx.lineTo(tx, ty) : ctx.moveTo(tx, ty)));
+      ctx.stroke();
+      if (s.alpha > 0.02) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 2.4, 0, TAU);
+        ctx.fillStyle = `rgba(${col},${Math.min(1, s.alpha).toFixed(3)})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = `rgba(${col},0.9)`;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if (landed) {
           ctx.beginPath();
-          ctx.arc(x, y, 2.2, 0, TAU);
-          ctx.fillStyle = `rgba(${col},0.95)`;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = `rgba(${col},0.9)`;
-          ctx.fill();
-          ctx.shadowBlur = 0;
+          ctx.arc(s.x, s.y, 6, 0, TAU);
+          ctx.strokeStyle = `rgba(255,180,120,${(0.6 * s.alpha).toFixed(2)})`;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
         }
       }
     }
+    for (let i = storms.length - 1; i >= 0; i--) {
+      if (storms[i].state === "die" && storms[i].alpha <= 0) storms.splice(i, 1);
+    }
 
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, TAU);
-    ctx.lineWidth = 1.4;
-    ctx.strokeStyle = "rgba(63,184,191,0.22)";
-    ctx.stroke();
+    if (foot) {
+      const land = storms.filter((s) => inNA(s.x, s.y)).length;
+      foot.textContent = `TRACKING ${storms.length} \u00b7 LANDFALL ${land}`;
+    }
   };
 }
 
-/* --- 2. MIDGARD N-01: async grid resolution matrix + scan bar --- */
-function gridFactory({ ctx, w, h }) {
-  const pad = 10;
-  const gx = pad;
-  const gy = pad;
-  const gw = w - pad * 2;
-  const gh = h - pad * 2;
-  const midX = gx + gw / 2;
-  const Lc = 4;
-  const Lr = 6;
-  const Rc = 12;
-  const Rr = 18;
-  let scan = -0.12;
-  let seedL = 1;
-  let seedR = 1;
-  const foot = document.querySelector(".hud-viz--grid [data-viz-foot]");
-  const rnd = (s) => {
-    const x = Math.sin(s * 12.9898) * 43758.5453;
-    return x - Math.floor(x);
+/* --- 2. MIDGARD N-01: dynamic Euclidean distance decay grid --- */
+function decayFactory({ ctx, w, h }) {
+  const TAU = Math.PI * 2;
+  const foot = document.querySelector(".hud-viz--decay [data-viz-foot]");
+  const pad = 8;
+  const gx = pad, gy = pad, gw = w - pad * 2, gh = h - pad * 2;
+  const cols = Math.max(8, Math.round(gw / 26));
+  const rows = Math.max(8, Math.round(gh / 26));
+  const cw = gw / cols, ch = gh / rows;
+  const maxD = Math.hypot(gw, gh);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (t) => t * t * (3 - 2 * t);
+
+  /* migration waypoints: four corners + dead centre */
+  const WP = [
+    [gx + cw * 0.5, gy + ch * 0.5],
+    [gx + gw - cw * 0.5, gy + ch * 0.5],
+    [gx + gw - cw * 0.5, gy + gh - ch * 0.5],
+    [gx + cw * 0.5, gy + gh - ch * 0.5],
+    [gx + gw * 0.5, gy + gh * 0.5],
+  ];
+  const pt = WP[0].slice();
+  let from = WP[0], to = WP[4];
+  let prog = 0, pauseT = 0;
+  const MOVE = 2200, PAUSE = 1100;
+
+  /* near → bright light teal, far → dim dark navy (access → food-desert decay) */
+  const ramp = (v) => {
+    const e = Math.pow(v, 1.4);
+    const r = lerp(10, 190, e), g = lerp(22, 235, e), b = lerp(38, 240, e);
+    const a = 0.1 + e * 0.72;
+    return `rgba(${r | 0},${g | 0},${b | 0},${a.toFixed(3)})`;
   };
 
-  const cells = (x0, cols, rows, resolvedX, warm) => {
-    const cw = gw / 2 / cols;
-    const ch = gh / rows;
+  return (dt, now) => {
+    if (prog < 1) {
+      prog = Math.min(1, prog + dt / MOVE);
+      const t = smooth(prog);
+      pt[0] = lerp(from[0], to[0], t);
+      pt[1] = lerp(from[1], to[1], t);
+    } else {
+      pauseT += dt;
+      if (pauseT > PAUSE) {
+        pauseT = 0;
+        prog = 0;
+        from = to;
+        let n;
+        do { n = (Math.random() * WP.length) | 0; } while (WP[n] === to);
+        to = WP[n];
+      }
+    }
+
+    ctx.clearRect(0, 0, w, h);
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const xp = x0 + c * cw;
-        const passed = xp < resolvedX;
-        const seed = r * cols + c + (warm ? seedL : seedR) * 0.37;
-        const v = rnd(seed);
-        let a;
-        if (warm) a = 0.12 + v * 0.5;
-        else a = passed ? 0.1 + v * 0.62 : 0.05 + v * 0.14;
-        ctx.fillStyle = `rgba(${warm ? "214,150,90" : "63,184,191"},${a.toFixed(3)})`;
-        ctx.fillRect(xp + 0.5, gy + r * ch + 0.5, cw - 1, ch - 1);
+        const ccx = gx + c * cw + cw / 2, ccy = gy + r * ch + ch / 2;
+        const d = Math.hypot(ccx - pt[0], ccy - pt[1]);
+        const v = 1 - Math.min(1, d / maxD);
+        ctx.fillStyle = ramp(v);
+        ctx.fillRect(gx + c * cw + 0.5, gy + r * ch + 0.5, cw - 1, ch - 1);
       }
     }
-    ctx.strokeStyle = warm ? "rgba(214,150,90,0.22)" : "rgba(63,184,191,0.22)";
+
+    ctx.strokeStyle = "rgba(63,184,191,0.1)";
     ctx.lineWidth = 0.5;
-    for (let c = 0; c <= cols; c++) {
-      const xx = x0 + c * cw;
-      ctx.beginPath();
-      ctx.moveTo(xx, gy);
-      ctx.lineTo(xx, gy + gh);
-      ctx.stroke();
-    }
-    for (let r = 0; r <= rows; r++) {
-      const yy = gy + r * ch;
-      ctx.beginPath();
-      ctx.moveTo(x0, yy);
-      ctx.lineTo(x0 + gw / 2, yy);
-      ctx.stroke();
-    }
-  };
+    for (let c = 0; c <= cols; c++) { const xx = gx + c * cw; ctx.beginPath(); ctx.moveTo(xx, gy); ctx.lineTo(xx, gy + gh); ctx.stroke(); }
+    for (let r = 0; r <= rows; r++) { const yy = gy + r * ch; ctx.beginPath(); ctx.moveTo(gx, yy); ctx.lineTo(gx + gw, yy); ctx.stroke(); }
 
-  return (dt) => {
-    scan += dt * 0.00017;
-    if (scan > 1.12) {
-      scan = -0.12;
-      seedL++;
-      seedR++;
-    }
-    const scanX = gx + scan * gw;
-    ctx.clearRect(0, 0, w, h);
-    cells(gx, Lc, Lr, gx + gw, true);
-    cells(midX, Rc, Rr, scanX, false);
-
-    ctx.strokeStyle = "rgba(230,237,234,0.25)";
-    ctx.lineWidth = 1;
+    /* supermarket source: glowing dot + pulsing access ring */
+    const px = pt[0], py = pt[1];
     ctx.beginPath();
-    ctx.moveTo(midX, gy);
-    ctx.lineTo(midX, gy + gh);
+    ctx.arc(px, py, 4, 0, TAU);
+    ctx.fillStyle = "rgba(200,245,248,0.95)";
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = "rgba(63,184,191,0.9)";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(px, py, 8 + (Math.sin(now * 0.005) * 0.5 + 0.5) * 6, 0, TAU);
+    ctx.strokeStyle = "rgba(63,184,191,0.5)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    if (scanX > midX && scanX < gx + gw) {
-      const grad = ctx.createLinearGradient(scanX - 24, 0, scanX + 4, 0);
-      grad.addColorStop(0, "rgba(63,184,191,0)");
-      grad.addColorStop(1, "rgba(63,184,191,0.3)");
-      ctx.fillStyle = grad;
-      ctx.fillRect(scanX - 24, gy, 24, gh);
-      ctx.strokeStyle = "rgba(180,240,244,0.9)";
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.moveTo(scanX, gy);
-      ctx.lineTo(scanX, gy + gh);
-      ctx.stroke();
-    }
-
-    if (foot) {
-      const pct = Math.max(0, Math.min(100, Math.round(((scanX - midX) / (gw / 2)) * 100)));
-      foot.textContent = `RESOLVE ${String(pct).padStart(3, " ")}%  \u00b7  \u0394res \u00d73`;
-    }
+    if (foot) foot.textContent = `SRC ${(px / w).toFixed(2)},${(py / h).toFixed(2)} \u00b7 \u0394 recompute`;
   };
 }
 
-/* --- 4. ROOTS N-01: dual-waveform particle loop --- */
-function waveFactory({ ctx, w, h }) {
+/* --- 4. ROOTS N-01: hypocenter wavefront reflection cross-section --- */
+function wavefrontFactory({ ctx, w, h }) {
   const TAU = Math.PI * 2;
-  const pad = 12;
-  const x0 = pad;
-  const x1 = w - pad;
-  const ww = x1 - x0;
-  const topY = h * 0.34;
-  const botY = h * 0.72;
-  const amp = Math.min(h * 0.12, 26);
-  let t = 0;
-  const foot = document.querySelector(".hud-viz--wave [data-viz-foot]");
-  const scat = Array.from({ length: 46 }, (_, i) => ({
-    p: i / 46,
-    off: Math.random() - 0.5,
-    amp: 0.5 + Math.random(),
-    sp: 0.6 + Math.random() * 0.9,
-  }));
-  const axis = (y) => {
-    ctx.strokeStyle = "rgba(134,176,182,0.14)";
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.moveTo(x0, y);
-    ctx.lineTo(x1, y);
-    ctx.stroke();
-  };
+  const foot = document.querySelector(".hud-viz--wavefront [data-viz-foot]");
+  const surfaceY = h * 0.26;
+  const hx = w * 0.5, hy = h * 0.7;
+  const mirrorY = 2 * surfaceY - hy; /* image source above surface (mirror method) */
+  const speed = Math.min(w, h) * 0.00018;
+  const maxR = Math.hypot(w, h);
+  const rings = [];
+  let acc = 0;
+  const INTERVAL = 850;
+  const bands = 4;
 
-  return (dt) => {
-    t += dt * 0.004;
+  return (dt, now) => {
+    acc += dt;
+    if (acc > INTERVAL) { acc = 0; rings.push({ r: 0 }); }
+    for (const rg of rings) rg.r += speed * dt;
+    for (let i = rings.length - 1; i >= 0; i--) if (rings[i].r > maxR) rings.splice(i, 1);
+
     ctx.clearRect(0, 0, w, h);
-    axis(topY);
-    axis(botY);
 
-    ctx.strokeStyle = "rgba(63,184,191,0.5)";
-    ctx.lineWidth = 1.1;
-    ctx.beginPath();
-    for (let i = 0; i <= ww; i += 2) {
-      const u = i / ww;
-      const y =
-        topY +
-        Math.sin(u * 22 + t * 2.4) * amp * 0.5 +
-        Math.sin(u * 51 - t * 3.1) * amp * 0.28 +
-        Math.sin(u * 9 + t * 1.6) * amp * 0.3;
-      i === 0 ? ctx.moveTo(x0 + i, y) : ctx.lineTo(x0 + i, y);
-    }
-    ctx.stroke();
-    for (const s of scat) {
-      const u = (s.p + t * 0.03 * s.sp) % 1;
-      const px = x0 + u * ww;
-      const y = topY + Math.sin(u * 40 + t * 3) * amp * s.amp * 0.6 + s.off * amp * 0.8;
-      const a = 0.25 + 0.5 * (0.5 + 0.5 * Math.sin(t * 2 + s.p * 20));
-      ctx.fillStyle = `rgba(120,220,228,${a.toFixed(2)})`;
+    /* earth body + sediment bands */
+    ctx.fillStyle = "rgba(20,14,10,0.35)";
+    ctx.fillRect(0, surfaceY, w, h - surfaceY);
+    ctx.strokeStyle = "rgba(214,150,90,0.1)";
+    ctx.lineWidth = 0.6;
+    for (let b = 1; b <= bands; b++) {
+      const yy = surfaceY + ((h - surfaceY) * b) / (bands + 1);
       ctx.beginPath();
-      ctx.arc(px, y, 1.3, 0, TAU);
-      ctx.fill();
+      ctx.moveTo(0, yy);
+      ctx.lineTo(w, yy);
+      ctx.stroke();
     }
-    ctx.fillStyle = "rgba(63,184,191,0.85)";
-    ctx.font = "9px monospace";
-    ctx.textAlign = "left";
-    ctx.fillText("PCA METHOD \u00b7 scatter", x0, topY - amp - 6);
 
-    const vs18 = botY + amp * 0.9;
-    ctx.strokeStyle = "rgba(214,150,90,0.75)";
+    /* wavefronts, clipped to the earth (below the surface line) */
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, surfaceY, w, h - surfaceY);
+    ctx.clip();
+    for (const rg of rings) {
+      const r = rg.r;
+      const fade = Math.max(0, 1 - r / maxR);
+      ctx.beginPath();
+      ctx.arc(hx, hy, r, 0, TAU);
+      ctx.strokeStyle = `rgba(214,150,90,${(0.55 * fade).toFixed(3)})`;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      if (r > hy - surfaceY) {
+        /* reflected wavefront = same radius from the mirror source, bouncing down */
+        ctx.beginPath();
+        ctx.arc(hx, mirrorY, r, 0, TAU);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = `rgba(120,200,210,${(0.4 * fade).toFixed(3)})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+    ctx.restore();
+
+    /* surface line + ticks */
+    ctx.strokeStyle = "rgba(180,240,244,0.7)";
     ctx.lineWidth = 1.4;
     ctx.beginPath();
-    for (let i = 0; i <= ww; i += 2) {
-      const u = i / ww;
-      const settle = u < 0.6 ? 0 : Math.min(1, (u - 0.6) / 0.25);
-      const centerY = botY + settle * (vs18 - botY);
-      const y = centerY + Math.sin(u * 16 - t * 2.0) * amp * (0.6 - settle * 0.4);
-      i === 0 ? ctx.moveTo(x0 + i, y) : ctx.lineTo(x0 + i, y);
-    }
+    ctx.moveTo(0, surfaceY);
+    ctx.lineTo(w, surfaceY);
     ctx.stroke();
-    ctx.strokeStyle = "rgba(214,150,90,0.4)";
-    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "rgba(134,176,182,0.3)";
+    ctx.lineWidth = 0.6;
+    for (let x = 0; x < w; x += 18) { ctx.beginPath(); ctx.moveTo(x, surfaceY); ctx.lineTo(x, surfaceY - 4); ctx.stroke(); }
+
+    /* hypocenter */
+    ctx.beginPath();
+    ctx.arc(hx, hy, 3 + (Math.sin(now * 0.006) * 0.5 + 0.5) * 2.5, 0, TAU);
+    ctx.fillStyle = "rgba(255,190,120,0.95)";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "rgba(214,150,90,0.9)";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(255,200,140,0.7)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(x0, vs18);
-    ctx.lineTo(x1, vs18);
+    ctx.moveTo(hx - 7, hy);
+    ctx.lineTo(hx + 7, hy);
+    ctx.moveTo(hx, hy - 7);
+    ctx.lineTo(hx, hy + 7);
     ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(214,150,90,0.9)";
+
+    ctx.fillStyle = "rgba(180,240,244,0.8)";
     ctx.font = "9px monospace";
-    ctx.fillText("1.8 km/s", x1 - 46, vs18 - 4);
+    ctx.textAlign = "left";
+    ctx.fillText("SURFACE", 4, surfaceY - 6);
     ctx.fillStyle = "rgba(214,150,90,0.85)";
-    ctx.fillText("GRID-SEARCH \u00b7 stable", x0, botY - amp - 6);
+    ctx.fillText("HYPOCENTER", hx + 10, hy + 3);
 
     if (foot) {
-      const v = (1.8 + Math.sin(t) * 0.02).toFixed(2);
-      foot.textContent = `V_S ${v} km/s \u00b7 \u0394offset ${(Math.abs(Math.sin(t * 1.3)) * 3).toFixed(1)} ms`;
+      const amp = (Math.abs(Math.sin(now * 0.002)) * 4 + 2).toFixed(1);
+      foot.textContent = `WAVEFRONTS ${rings.length} \u00b7 AMP ${amp}`;
     }
   };
 }
 
-/* --- 3. MIDGARD N-03: terminal pipeline dependency tree --- */
-function initPipeline() {
-  const host = document.getElementById("viz-pipeline");
-  const term = document.getElementById("viz-term");
-  if (!host || !term) return;
+/* --- 3. MIDGARD N-03: SDI isometric layer stack --- */
+function sdiFactory({ ctx, w, h }) {
+  const TAU = Math.PI * 2;
+  const foot = document.querySelector(".hud-viz--sdi [data-viz-foot]");
+  const cx = w * 0.5, cy = h * 0.66;
+  const ux = Math.min(w * 0.3, 130), uy = ux * 0.5;
+  const gap = Math.min(h * 0.12, 34);
+  const isoX = (px, py) => cx + (px - py) * ux;
+  const isoY = (px, py, z) => cy + (px + py) * uy * 0.5 - z * gap;
+  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  const Z_BASE = 0, Z_RAST = 1, Z_POLY = 2, Z_PT = 3;
 
-  const STEPS = [
-    { name: "INGEST", cmd: "gdalinfo srtm_dem.tif", out: "Size 4001\u00d74001 \u00b7 EPSG:4326" },
-    { name: "REPROJECT", cmd: "gdalwarp -t_srs EPSG:5070 in.tif out.tif", out: "Creating output\u2026 100%" },
-    { name: "VECTORIZE", cmd: "ogr2ogr -f GPKG tracts.gpkg tracts.shp", out: "6218 features written" },
-    { name: "ANALYZE", cmd: "qgis_process run native:buffer", out: "buffer(250m) \u2192 mask.gpkg" },
-    { name: "PUBLISH", cmd: "rio cogeo create out.tif cog.tif", out: "Valid COG \u2713 ovr:5" },
-  ];
-
-  const nodes = STEPS.map((s) => {
-    const el = document.createElement("div");
-    el.className = "pipe-node";
-    el.innerHTML = `<span class="pipe-dot"></span><span class="pipe-name mono">${s.name}</span>`;
-    host.appendChild(el);
-    return el;
-  });
-  const packet = document.createElement("span");
-  packet.className = "pipe-packet";
-  host.appendChild(packet);
-
-  const queue = [];
-  let typing = false;
-  const pump = () => {
-    if (typing || !queue.length) return;
-    typing = true;
-    const line = queue.shift();
-    const div = document.createElement("div");
-    div.className = "term-line";
-    term.appendChild(div);
-    while (term.children.length > 6) term.removeChild(term.firstChild);
-    let i = 0;
-    const speed = line.instant ? 0 : 14;
-    const tick = () => {
-      div.textContent = (line.prefix || "") + line.text.slice(0, i);
-      i++;
-      if (i <= line.text.length) setTimeout(tick, speed);
-      else {
-        typing = false;
-        pump();
-      }
-    };
-    tick();
-  };
-  const emit = (s) => pump(queue.push({ prefix: "$ ", text: s.cmd }, { prefix: "  ", text: s.out }));
-
-  let raf = 0;
-  let startT = 0;
-  let cycle = 0;
-  let fired = STEPS.map(() => false);
-  const centers = () => nodes.map((n) => n.offsetTop + n.offsetHeight / 2);
-
-  const frame = (ts) => {
-    if (!startT) startT = ts;
-    const T = (ts - startT) / 4200;
-    const p = T % 1;
-    if (Math.floor(T) > cycle) {
-      cycle = Math.floor(T);
-      fired = STEPS.map(() => false);
-    }
-    const ys = centers();
-    const top = ys[0] - 6;
-    const bot = ys[ys.length - 1] + 6;
-    const y = top + (bot - top) * p;
-    packet.style.transform = `translate(-50%, ${y}px)`;
-    packet.style.opacity = p < 0.02 || p > 0.98 ? "0" : "1";
-    ys.forEach((ny, i) => {
-      if (!fired[i] && y >= ny) {
-        fired[i] = true;
-        nodes[i].classList.add("hit");
-        setTimeout(() => nodes[i].classList.remove("hit"), 600);
-        emit(STEPS[i]);
-      }
+  const planePath = (z) => {
+    ctx.beginPath();
+    corners.forEach(([px, py], i) => {
+      const X = isoX(px, py), Y = isoY(px, py, z);
+      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
     });
-    raf = requestAnimationFrame(frame);
+    ctx.closePath();
+  };
+  const strokePoly = (poly, z) => {
+    ctx.beginPath();
+    poly.forEach(([px, py], i) => {
+      const X = isoX(px, py), Y = isoY(px, py, z);
+      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+    });
   };
 
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting && !prefersReducedMotion && !raf) {
-          startT = 0;
-          raf = requestAnimationFrame(frame);
-        } else if (!e.isIntersecting && raf) {
-          cancelAnimationFrame(raf);
-          raf = 0;
-        }
-      });
-    },
-    { rootMargin: "220px 0px" }
-  );
-  io.observe(host);
+  const CONT = [
+    [[-0.8, -0.5], [-0.4, -0.6], [-0.2, -0.4], [-0.3, -0.1], [-0.6, -0.1], [-0.8, -0.3]],
+    [[0.1, 0.0], [0.4, -0.1], [0.6, 0.2], [0.4, 0.5], [0.1, 0.5], [0.0, 0.2]],
+    [[-0.2, 0.4], [0.1, 0.5], [0.0, 0.8], [-0.3, 0.8]],
+  ];
+  const POLY = [
+    [[-0.6, -0.3], [-0.2, -0.4], [-0.1, 0.0], [-0.5, 0.1]],
+    [[0.1, -0.5], [0.5, -0.4], [0.5, 0.0], [0.2, 0.0]],
+    [[-0.1, 0.3], [0.3, 0.3], [0.35, 0.7], [-0.05, 0.7]],
+  ];
+  const PTS = Array.from({ length: 11 }, () => [
+    (Math.random() * 2 - 1) * 0.85,
+    (Math.random() * 2 - 1) * 0.85,
+    Math.random() * TAU,
+  ]);
+  const connectors = [PTS[2], PTS[6]];
+  const RN = 8;
+  let t = 0;
 
-  if (prefersReducedMotion) {
-    STEPS.slice(0, 3).forEach((s) =>
-      queue.push({ prefix: "$ ", text: s.cmd, instant: true }, { prefix: "  ", text: s.out, instant: true })
-    );
-    pump();
-  }
+  return (dt, now) => {
+    t += dt;
+    ctx.clearRect(0, 0, w, h);
+
+    /* Layer 0 — base map wireframe */
+    planePath(Z_BASE);
+    ctx.fillStyle = "rgba(10,22,38,0.5)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(130,185,195,0.4)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(63,184,191,0.4)";
+    for (const poly of CONT) { strokePoly(poly, Z_BASE); ctx.stroke(); }
+
+    /* Layer 1 — multicolored raster grid */
+    for (let i = 0; i < RN; i++) {
+      for (let j = 0; j < RN; j++) {
+        const x0 = -1 + (i / RN) * 2, x1 = -1 + ((i + 1) / RN) * 2;
+        const y0 = -1 + (j / RN) * 2, y1 = -1 + ((j + 1) / RN) * 2;
+        ctx.beginPath();
+        ctx.moveTo(isoX(x0, y0), isoY(x0, y0, Z_RAST));
+        ctx.lineTo(isoX(x1, y0), isoY(x1, y0, Z_RAST));
+        ctx.lineTo(isoX(x1, y1), isoY(x1, y1, Z_RAST));
+        ctx.lineTo(isoX(x0, y1), isoY(x0, y1, Z_RAST));
+        ctx.closePath();
+        const hue = (i * 40 + j * 23 + t * 0.02) % 360;
+        const sh = 0.28 + 0.14 * Math.sin(t * 0.004 + i + j);
+        ctx.fillStyle = `hsla(${hue | 0},60%,55%,${sh.toFixed(2)})`;
+        ctx.fill();
+      }
+    }
+    planePath(Z_RAST);
+    ctx.strokeStyle = "rgba(130,185,195,0.3)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    /* Layer 2 — hollow glowing polygon vectors */
+    planePath(Z_POLY);
+    ctx.strokeStyle = "rgba(130,185,195,0.18)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    for (const poly of POLY) {
+      strokePoly(poly, Z_POLY);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(63,184,191,0.06)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(63,184,191,0.7)";
+      ctx.lineWidth = 1.4;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = "rgba(63,184,191,0.6)";
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    /* Layer 3 — pulsing point nodes floating above */
+    planePath(Z_PT);
+    ctx.strokeStyle = "rgba(130,185,195,0.12)";
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+    for (const p of PTS) {
+      const X = isoX(p[0], p[1]), Y = isoY(p[0], p[1], Z_PT + 0.15);
+      const pulse = 0.5 + 0.5 * Math.sin(t * 0.005 + p[2]);
+      ctx.beginPath();
+      ctx.arc(X, Y, 2 + pulse * 2, 0, TAU);
+      ctx.fillStyle = `rgba(200,245,248,${(0.5 + 0.4 * pulse).toFixed(2)})`;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "rgba(63,184,191,0.8)";
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    /* HUD connectors: a point linked straight down through every layer */
+    for (const p of connectors) {
+      const X = isoX(p[0], p[1]);
+      const yTop = isoY(p[0], p[1], Z_PT + 0.15);
+      const yBot = isoY(p[0], p[1], Z_BASE);
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = "rgba(63,184,191,0.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(X, yTop);
+      ctx.lineTo(X, yBot);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      [Z_BASE, Z_RAST, Z_POLY, Z_PT].forEach((z) => {
+        const Y = isoY(p[0], p[1], z);
+        ctx.beginPath();
+        ctx.arc(X, Y, 2, 0, TAU);
+        ctx.fillStyle = "rgba(63,184,191,0.85)";
+        ctx.fill();
+      });
+      const tp = (t * 0.0004) % 1;
+      const Yp = yTop + (yBot - yTop) * tp;
+      ctx.beginPath();
+      ctx.arc(X, Yp, 2.6, 0, TAU);
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "rgba(63,184,191,0.9)";
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    /* layer labels */
+    ctx.fillStyle = "rgba(134,176,182,0.7)";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "left";
+    const labels = ["BASE", "RASTER", "VECTOR", "POINTS"];
+    [Z_BASE, Z_RAST, Z_POLY, Z_PT].forEach((z, i) => {
+      ctx.fillText(labels[i], isoX(-1, 1) - 4, isoY(-1, 1, z) + 3);
+    });
+
+    if (foot) foot.textContent = `SDI \u00b7 ${PTS.length} NODES \u00b7 4 PLANES`;
+  };
 }
 
 function initHudViz() {
-  mountViz(document.getElementById("viz-globe"), globeFactory);
-  mountViz(document.getElementById("viz-grid"), gridFactory);
-  mountViz(document.getElementById("viz-wave"), waveFactory);
-  initPipeline();
+  mountViz(document.getElementById("viz-cyclo"), cycloFactory);
+  mountViz(document.getElementById("viz-decay"), decayFactory);
+  mountViz(document.getElementById("viz-sdi"), sdiFactory);
+  mountViz(document.getElementById("viz-wavefront"), wavefrontFactory);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
