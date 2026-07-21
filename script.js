@@ -748,10 +748,30 @@ function embedInner(e) {
    Keyed by project slug. Each appears once; the panel sits in the tile's outer
    gap (tc/food/training → right, seismic → left, following node alternation). */
 const HUD_VIZ = {
-  tc: { type: "cyclo", label: "ATLANTIC CYCLOGENESIS", foot: "GENESIS \u00b7 W. AFRICA COAST" },
-  food: { type: "decay", label: "EUCLIDEAN DECAY RASTER", foot: "ACCESS FIELD \u00b7 LIVE RECOMPUTE" },
-  training: { type: "sdi", label: "SDI LAYER STACK", foot: "4 PLANES \u00b7 WGS84" },
-  seismic: { type: "wavefront", label: "HYPOCENTER WAVEFRONT", foot: "V_S 1.8 km/s \u00b7 REFLECT" },
+  tc: {
+    type: "cyclo",
+    label: "ATLANTIC CYCLOGENESIS",
+    foot: "GENESIS \u00b7 TROPICAL ATLANTIC",
+    desc: "Each glowing point is a tropical cyclone forming over the warm tropical Atlantic. From genesis the storms drift west and northwest across the basin, carried by the prevailing trade winds — some recurve poleward and head back out to sea, while others track far enough west to make landfall on North America. The fading trails are the kind of storm tracks a 45-year record of cyclone intensity is built from.",
+  },
+  food: {
+    type: "decay",
+    label: "EUCLIDEAN DECAY RASTER",
+    foot: "ACCESS FIELD \u00b7 LIVE RECOMPUTE",
+    desc: "The box is a region — think a county or census tract — divided into equal-area grid cells. Each cell is shaded by its straight-line (Euclidean) distance to the glowing point, which stands in for a supermarket. Cells farther from the store are darker; cells closer to it are lighter. A lighter cell means that patch of the region has better access to healthy food, and the whole field recomputes as the store location moves.",
+  },
+  training: {
+    type: "sdi",
+    label: "SDI LAYER STACK",
+    foot: "4 PLANES \u00b7 WGS84",
+    desc: "A map is assembled as a stack of aligned layers sharing one footprint. <b>A</b> is the base map — reference terrain and coastlines. <b>B</b> is a raster layer — gridded, continuous data such as satellite imagery or a heatmap. <b>C</b> is a polygon vector layer — bounded areas like regions or zones. <b>D</b> is a point vector layer — discrete locations. Registered to the same coordinate system, the four planes combine into a single map: the core idea behind a Spatial Data Infrastructure (SDI).",
+  },
+  seismic: {
+    type: "wavefront",
+    label: "HYPOCENTER WAVEFRONT",
+    foot: "V_S 1.8 km/s \u00b7 REFLECT",
+    desc: "Seismic waves originate deep within the earth at the hypocenter, an earthquake's point of origin. They radiate outward, and when they reach the surface they bounce (reflect) back down, making the ground shake. Measuring that shaking lets us work out what kind of sediments lie beneath the surface — soft, slow layers amplify the shaking and flag a higher ground-shaking hazard.",
+  },
 };
 
 function vizStage(type) {
@@ -770,6 +790,7 @@ function vizPanel(viz) {
         </div>
         <div class="hud-viz-stage">${vizStage(viz.type)}</div>
         <div class="hud-viz-foot mono" data-viz-foot>${viz.foot}</div>
+        ${viz.desc ? `<p class="hud-viz-desc">${viz.desc}</p>` : ""}
       </div>
     </aside>`;
 }
@@ -1612,7 +1633,7 @@ function cycloFactory({ ctx, w, h }) {
   const MAX = 6;
   const spawn = () => {
     const oy = 0.40 + Math.random() * 0.10;
-    const ox = 0.585 + Math.random() * 0.02;
+    const ox = 0.50 + Math.random() * 0.02; /* over the tropical Atlantic, west of the African coast */
     const speed = Math.min(w, h) * (0.00010 + Math.random() * 0.00006);
     const turn = 0.006 + Math.random() * 0.020; /* deg per ms, steers N then NE */
     storms.push({
@@ -1646,8 +1667,8 @@ function cycloFactory({ ctx, w, h }) {
       ctx.stroke();
     }
 
-    /* genesis marker off West Africa */
-    const gpx = mx(0.585), gpy = my(0.45);
+    /* genesis marker over the tropical Atlantic */
+    const gpx = mx(0.50), gpy = my(0.45);
     ctx.beginPath();
     ctx.arc(gpx, gpy, 3 + Math.sin(now * 0.004) * 1.2, 0, TAU);
     ctx.strokeStyle = "rgba(214,150,90,0.5)";
@@ -1701,6 +1722,16 @@ function cycloFactory({ ctx, w, h }) {
     for (let i = storms.length - 1; i >= 0; i--) {
       if (storms[i].state === "die" && storms[i].alpha <= 0) storms.splice(i, 1);
     }
+
+    /* continent labels (drawn last so they stay legible above the tracks) */
+    ctx.fillStyle = "rgba(150,196,206,0.82)";
+    ctx.font = "9px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const LBL = [["NA", 0.19, 0.22], ["SA", 0.35, 0.72], ["EUROPE", 0.72, 0.11], ["AFRICA", 0.75, 0.50]];
+    for (const [txt, lx, ly] of LBL) ctx.fillText(txt, mx(lx), my(ly));
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
 
     if (foot) {
       const land = storms.filter((s) => inNA(s.x, s.y)).length;
@@ -2048,13 +2079,13 @@ function sdiFactory({ ctx, w, h }) {
       ctx.shadowBlur = 0;
     }
 
-    /* layer labels */
-    ctx.fillStyle = "rgba(134,176,182,0.7)";
-    ctx.font = "8px monospace";
+    /* layer labels A–D (keyed to the panel description below the animation) */
+    ctx.fillStyle = "rgba(170,216,226,0.92)";
+    ctx.font = "bold 11px monospace";
     ctx.textAlign = "left";
-    const labels = ["BASE", "RASTER", "VECTOR", "POINTS"];
+    const labels = ["A", "B", "C", "D"];
     [Z_BASE, Z_RAST, Z_POLY, Z_PT].forEach((z, i) => {
-      ctx.fillText(labels[i], isoX(-1, 1) - 4, isoY(-1, 1, z) + 3);
+      ctx.fillText(labels[i], isoX(-1, 1) - 8, isoY(-1, 1, z) + 4);
     });
 
     if (foot) foot.textContent = `SDI \u00b7 ${PTS.length} NODES \u00b7 4 PLANES`;
