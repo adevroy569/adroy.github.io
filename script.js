@@ -1,7 +1,7 @@
 /* =========================================================
    Aniket Dev Roy — Portfolio
    World-tree (Yggdrasil) layout: scroll-grown SVG trunk,
-   realm nodes, cross-field background, survey map, cursor
+   realm nodes, particle field, survey map
    ========================================================= */
 
 "use strict";
@@ -265,100 +265,6 @@ const REALMS = [
   },
 ];
 
-/* ---------- Cross-field background ---------- */
-function initCrossField() {
-  const canvas = $("#cross-field");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-
-  const SPACING = 52;
-  const ARM = 4;
-  const RADIUS = 170;
-  const BASE = { r: 122, g: 140, b: 146, a: 0.13 };
-  const GLOW = { r: 63, g: 184, b: 191, a: 0.95 };
-
-  let crosses = [];
-  let w = 0;
-  let h = 0;
-  let mx = -9999;
-  let my = -9999;
-  const reactive = finePointer && !prefersReducedMotion;
-
-  function build() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = window.innerWidth;
-    h = window.innerHeight;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    canvas.style.width = w + "px";
-    canvas.style.height = h + "px";
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    crosses = [];
-    for (let y = SPACING / 2; y < h + SPACING; y += SPACING) {
-      for (let x = SPACING / 2; x < w + SPACING; x += SPACING) {
-        crosses.push({ x, y, t: 0 });
-      }
-    }
-    draw();
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-    ctx.lineWidth = 1;
-    ctx.lineCap = "round";
-    for (const c of crosses) {
-      const t = c.t;
-      const r = BASE.r + (GLOW.r - BASE.r) * t;
-      const g = BASE.g + (GLOW.g - BASE.g) * t;
-      const b = BASE.b + (GLOW.b - BASE.b) * t;
-      const a = BASE.a + (GLOW.a - BASE.a) * t;
-      const arm = ARM * (1 + t * 0.5);
-
-      ctx.save();
-      ctx.translate(c.x, c.y);
-      if (t > 0.004) ctx.rotate(t * Math.PI * 0.5);
-      ctx.strokeStyle = `rgba(${r | 0},${g | 0},${b | 0},${a.toFixed(3)})`;
-      if (t > 0.05) {
-        ctx.shadowColor = `rgba(63,184,191,${(t * 0.8).toFixed(3)})`;
-        ctx.shadowBlur = 7 * t;
-      }
-      ctx.beginPath();
-      ctx.moveTo(-arm, 0);
-      ctx.lineTo(arm, 0);
-      ctx.moveTo(0, -arm);
-      ctx.lineTo(0, arm);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  function frame() {
-    for (const c of crosses) {
-      const d = Math.hypot(c.x - mx, c.y - my);
-      const target = d < RADIUS ? 1 - d / RADIUS : 0;
-      c.t += (target - c.t) * 0.14;
-      if (c.t < 0.004) c.t = 0;
-    }
-    draw();
-    requestAnimationFrame(frame);
-  }
-
-  window.addEventListener("resize", build);
-  build();
-
-  if (reactive) {
-    window.addEventListener("pointermove", (e) => {
-      mx = e.clientX;
-      my = e.clientY;
-    });
-    document.addEventListener("mouseleave", () => {
-      mx = -9999;
-      my = -9999;
-    });
-    requestAnimationFrame(frame);
-  }
-}
-
 /* ---------- Background particle system (vanilla Canvas) ----------
    A lightweight motes field on its own <canvas>. Behaviour morphs across the
    realms in lockstep with the mood layer: light-teal motes rise slowly in
@@ -614,18 +520,6 @@ function initClock() {
   };
   tick();
   setInterval(tick, 30000);
-}
-
-/* ---------- Spotlight glow following the cursor ---------- */
-function initGlow() {
-  if (!finePointer) return;
-  $$(".glow").forEach((el) => {
-    el.addEventListener("pointermove", (e) => {
-      const rect = el.getBoundingClientRect();
-      el.style.setProperty("--gx", `${e.clientX - rect.left}px`);
-      el.style.setProperty("--gy", `${e.clientY - rect.top}px`);
-    });
-  });
 }
 
 /* ---------- Node inner markup (features + embeds unchanged) ---------- */
@@ -1870,7 +1764,6 @@ function initHudViz() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initCrossField();
   initParticles();
   renderRealms();
   initHudViz();
@@ -1878,7 +1771,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initWorldTree();
   initEnvTransition();
   initFooter();
-  initGlow();
   initHeroMap();
   initClock();
 });

@@ -15,7 +15,6 @@
   --line: #1e2d33;
   --grid: rgba(230, 237, 234, 0.05);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --glow-color: rgba(63, 184, 191, 0.11);
 
   --font-display: "Bricolage Grotesque", "Public Sans", sans-serif;
   --font-body: "Public Sans", system-ui, sans-serif;
@@ -34,7 +33,7 @@
 }
 
 /* ---------- Environmental mood layer (GSAP-driven) ----------
-   Sits at z-index -1: behind the transparent cross-field canvas (z0)
+   Sits at z-index -1: behind the transparent particle canvas (z0)
    and all content, but in front of the body's base paint. GSAP tweens
    .env-base's color and each glow's opacity as realms scroll past. */
 .env {
@@ -135,8 +134,7 @@ h2 {
   color: var(--paper);
 }
 
-/* ---------- Layering: cross-field behind everything ---------- */
-#cross-field,
+/* ---------- Layering: particle field behind everything ---------- */
 #particles {
   position: fixed;
   inset: 0;
@@ -150,29 +148,9 @@ main,
   z-index: 1;
 }
 
-/* ---------- Spotlight glow (cursor-following) ---------- */
+/* ---------- Card positioning context (cursor glow removed) ---------- */
 .glow {
   position: relative;
-}
-
-.glow::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    260px circle at var(--gx, 50%) var(--gy, 50%),
-    var(--glow-color),
-    transparent 65%
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 3;
-}
-
-.glow:hover::after {
-  opacity: 1;
 }
 
 /* ---------- Navigation ---------- */
@@ -278,47 +256,13 @@ main,
   50% { transform: translateY(-5px); }
 }
 
-.portrait-wrap:hover {
-  animation: portrait-shake 0.45s ease-in-out infinite;
-}
-
-@keyframes portrait-shake {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  20% { transform: translate(-1.5px, 1px) rotate(-1.6deg); }
-  40% { transform: translate(1.5px, -1px) rotate(1.4deg); }
-  60% { transform: translate(-1px, -1px) rotate(-1.2deg); }
-  80% { transform: translate(1px, 1px) rotate(1.6deg); }
-}
-
-.portrait-ring {
-  position: absolute;
-  inset: -11px;
-  width: calc(100% + 22px);
-  height: calc(100% + 22px);
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  animation: ring-spin 40s linear infinite;
-  transform-origin: center;
-}
-
-.ring-ticks line {
-  stroke: var(--contour);
-  stroke-width: 2;
-}
-
-@keyframes ring-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .portrait {
   position: relative;
   z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 14px;
   border: 2px solid var(--paper-raised);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
 }
@@ -548,17 +492,18 @@ main,
   display: block;
 }
 
-/* Portrait floating over the map, right side */
+/* Portrait floating over the map, nestled toward the bottom-right */
 .hero-portrait {
   position: absolute;
-  right: clamp(1.2rem, 4.5vw, 3rem);
-  top: calc(50% - 86px);
+  right: clamp(1.2rem, 4vw, 2.4rem);
+  bottom: clamp(1.1rem, 3vw, 2rem);
+  top: auto;
   z-index: 4;
 }
 
 .hero-portrait .portrait-wrap {
-  width: 172px;
-  height: 172px;
+  width: 144px;
+  height: 144px;
   margin: 0;
 }
 
@@ -1579,8 +1524,6 @@ main,
   .eu-line,
   .mod-tile,
   .portrait-wrap,
-  .portrait-wrap:hover,
-  .portrait-ring,
   .wp-next .wp-mark::after,
   .pulse-dot::after {
     animation: none;
@@ -1617,10 +1560,6 @@ main,
   .social:hover {
     transform: none;
   }
-
-  .glow::after {
-    display: none;
-  }
 }
 
 /* ---------- Responsive ---------- */
@@ -1632,6 +1571,7 @@ main,
   .hero-portrait {
     top: 1rem;
     right: 1rem;
+    bottom: auto;
   }
 
   .hero-portrait .portrait-wrap {
