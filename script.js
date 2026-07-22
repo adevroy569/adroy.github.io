@@ -376,7 +376,7 @@ function initParticles() {
   /* Per-realm velocity field (px/second) + colour + horizontal sway amplitude. */
   const FIELDS = {
     canopy: { vx: 7, vy: -15, col: [125, 205, 214], sway: 11 }, /* light teal, rising    */
-    midgard: { vx: 20, vy: -1, col: [150, 186, 176], sway: 6 }, /* misty wind, sideways  */
+    midgard: { vx: 20, vy: -1, col: [150, 172, 195], sway: 6 }, /* misty steel-blue wind, sideways */
     roots: { vx: -4, vy: 15, col: [208, 150, 92], sway: 5 }, /* warm amber, sinking      */
   };
   const seq = ["canopy", "midgard", "roots"]
@@ -614,59 +614,6 @@ function initClock() {
   };
   tick();
   setInterval(tick, 30000);
-}
-
-/* ---------- Custom survey-reticle cursor ---------- */
-function initCursor() {
-  const cursor = $("#cursor");
-  if (!cursor || !finePointer) {
-    if (cursor) cursor.remove();
-    return;
-  }
-  document.documentElement.classList.add("has-cursor");
-
-  let tx = -100, ty = -100;
-  let cx = -100, cy = -100;
-  const ease = prefersReducedMotion ? 1 : 0.22;
-
-  window.addEventListener("pointermove", (e) => {
-    tx = e.clientX;
-    ty = e.clientY;
-    cursor.classList.add("is-visible");
-  });
-
-  document.addEventListener("mouseleave", () => cursor.classList.remove("is-visible"));
-  document.addEventListener("mouseenter", () => cursor.classList.add("is-visible"));
-
-  document.addEventListener("pointerover", (e) => {
-    /* Hide the reticle over iframes: their documents own the pointer there */
-    if (e.target.tagName === "IFRAME") {
-      cursor.classList.remove("is-visible");
-      return;
-    }
-    const interactive = e.target.closest("a, button, #hero-map");
-    cursor.classList.toggle("is-active", Boolean(interactive));
-  });
-
-  /* When the pointer crosses into an iframe (StoryMap embeds), the parent
-     document stops receiving pointer events, which used to strand the
-     reticle at the frame's edge. Catch the crossing via mouseout. */
-  document.addEventListener("mouseout", (e) => {
-    const to = e.relatedTarget;
-    if (!to || to.tagName === "IFRAME") {
-      cursor.classList.remove("is-visible");
-    }
-  });
-
-  window.addEventListener("pointerdown", () => cursor.classList.add("is-down"));
-  window.addEventListener("pointerup", () => cursor.classList.remove("is-down"));
-
-  (function loop() {
-    cx += (tx - cx) * ease;
-    cy += (ty - cy) * ease;
-    cursor.style.transform = `translate(${cx}px, ${cy}px)`;
-    requestAnimationFrame(loop);
-  })();
 }
 
 /* ---------- Spotlight glow following the cursor ---------- */
@@ -1246,7 +1193,7 @@ function initEnvTransition() {
   /* One palette per realm: mood base colour + how strongly each glow shows. */
   const PALETTE = {
     canopy: { base: "#0a1626", top: 1.0, bottom: 0.0 }, /* rich navy, teal top corners   */
-    midgard: { base: "#16291b", top: 0.08, bottom: 0.0 }, /* dark jungle green, glows calm  */
+    midgard: { base: "#242b35", top: 0.08, bottom: 0.0 }, /* muted slate blue / deep steel  */
     roots: { base: "#05080b", top: 0.0, bottom: 1.0 }, /* midnight-black, amber bottom  */
   };
 
@@ -1323,202 +1270,6 @@ function initEnvTransition() {
   /* Fonts, the hero map, and the world-tree all settle after load and can
      shift section offsets — recompute once that's done. */
   window.addEventListener("load", () => ScrollTrigger.refresh());
-}
-
-/* ---------- HUD minimap: active-realm detection + leaf slide ----------
-   IntersectionObserver flags which realm containers cross the viewport centre;
-   the one nearest the centre wins (handles About nested inside Roots). The
-   active node glows and the leaf slides onto it; clicking scrolls there. */
-function initHud() {
-  const hud = $(".hud");
-  if (!hud) return;
-  const leaf = $(".hud-leaf", hud);
-  const targets = $$(".hud-node", hud)
-    .map((node) => ({ node, id: node.dataset.target, el: document.getElementById(node.dataset.target) }))
-    .filter((t) => t.el);
-  if (!targets.length) return;
-
-  /* Click → smooth-scroll to the realm (honours scroll-padding + reduced motion). */
-  targets.forEach((t) => {
-    t.node.addEventListener("click", () => {
-      t.el.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
-    });
-  });
-
-  let activeId = null;
-  const moveLeaf = (node) => {
-    const y = node.offsetTop + node.offsetHeight / 2; /* layout-space: transform-proof */
-    leaf.style.transform = `translate(-50%, calc(${y}px - 50%))`;
-  };
-  const setActive = (id) => {
-    if (id === activeId) return;
-    activeId = id;
-    targets.forEach((t) => {
-      const on = t.id === id;
-      t.node.classList.toggle("is-active", on);
-      if (on) {
-        t.node.setAttribute("aria-current", "true");
-        moveLeaf(t.node);
-      } else {
-        t.node.removeAttribute("aria-current");
-      }
-    });
-    /* let decorative modules (telemetry HUD) follow the active realm */
-    document.dispatchEvent(new CustomEvent("realm:change", { detail: { id } }));
-  };
-
-  /* Among realms crossing the centre band, pick the one nearest the centre. */
-  const state = new Map();
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => state.set(e.target.id, e.isIntersecting));
-      const mid = window.innerHeight / 2;
-      let best = null;
-      let bestD = Infinity;
-      for (const t of targets) {
-        if (!state.get(t.id)) continue;
-        const r = t.el.getBoundingClientRect();
-        const d = Math.abs(r.top + r.height / 2 - mid);
-        if (d < bestD) {
-          bestD = d;
-          best = t.id;
-        }
-      }
-      if (best) setActive(best);
-    },
-    { rootMargin: "-45% 0px -45% 0px", threshold: 0 }
-  );
-  targets.forEach((t) => io.observe(t.el));
-
-  /* Seed a default before the first scroll, keep the leaf aligned on resize. */
-  requestAnimationFrame(() => {
-    if (!activeId) setActive(targets[0].id);
-  });
-  window.addEventListener("resize", () => {
-    const cur = targets.find((t) => t.id === activeId);
-    if (cur) moveLeaf(cur.node);
-  });
-}
-
-/* ---------- Telemetry HUD: realm-driven geo-data readouts ----------
-   Decorative sci-fi sidebars. On each realm change (broadcast by the minimap)
-   the coordinates + metric + 3x3 matrix "spin" via a left-to-right digit
-   decode, then jitter in real time to feel live. Purely cosmetic, hidden
-   below xl, and skips all work when off-screen or reduced-motion. */
-function initTelemetry() {
-  const panelL = $(".telemetry-l");
-  const tagR = $(".telemetry-r");
-  if (!panelL && !tagR) return;
-
-  const el = {
-    lat: panelL && panelL.querySelector('[data-tlm="lat"]'),
-    lon: panelL && panelL.querySelector('[data-tlm="lon"]'),
-    mk: panelL && panelL.querySelector('[data-tlm="mk"]'),
-    mv: panelL && panelL.querySelector('[data-tlm="mv"]'),
-    cells: panelL ? $$(".tlm-cell", panelL) : [],
-    sys: tagR && tagR.querySelector('[data-tlm="sysref"]'),
-  };
-
-  /* Per-realm readout. Third metric shifts meaning: satellite ALT (Canopy) ->
-     land ELEV (Midgard) -> shear-wave V_S (Roots). Coords tie to each realm's
-     project region (tropical basin / Purdue / a seismic zone). */
-  const TLM = {
-    canopy: { lat: [24.5551, "N"], lon: [81.78, "W"], m: ["ALT", 705.0, "km", 1], seed: 3, sys: "SYS_REF: HURSAT/NETCDF" },
-    midgard: { lat: [40.4237, "N"], lon: [86.9212, "W"], m: ["ELEV", 187.0, "m", 0], seed: 7, sys: "SYS_REF: GEOPANDAS/OSM" },
-    roots: { lat: [34.0522, "N"], lon: [118.2437, "W"], m: ["V_S", 1.85, "km/s", 2], seed: 5, sys: "SYS_REF: SEISMIC/V_S" },
-    about: { lat: [40.4237, "N"], lon: [86.9212, "W"], m: ["MODE", "LOG", "", 0], seed: 9, sys: "SYS_REF: SURVEY/LOG" },
-  };
-
-  const mq = window.matchMedia("(min-width: 1280px)");
-  const canAnimate = () => mq.matches && !prefersReducedMotion;
-
-  /* Left-to-right decode: punctuation/spaces reveal in place; letters and
-     digits scramble through glyphs until their slot is reached. Reads as a
-     clean HUD "spin" to the new value. */
-  const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  const isAlnum = (c) =>
-    (c >= "0" && c <= "9") || (c >= "A" && c <= "Z") || (c >= "a" && c <= "z");
-  function spinTo(node, finalText) {
-    if (!node) return;
-    if (!canAnimate()) {
-      node.textContent = finalText;
-      return;
-    }
-    const start = performance.now();
-    const dur = 460;
-    const stepFn = (now) => {
-      const t = Math.min(1, (now - start) / dur);
-      const reveal = Math.floor(t * finalText.length);
-      let out = "";
-      for (let i = 0; i < finalText.length; i++) {
-        const c = finalText[i];
-        if (i < reveal || !isAlnum(c)) out += c;
-        else out += GLYPHS[(Math.random() * GLYPHS.length) | 0];
-      }
-      node.textContent = out;
-      if (t < 1) requestAnimationFrame(stepFn);
-      else node.textContent = finalText;
-    };
-    requestAnimationFrame(stepFn);
-  }
-
-  let cur = null;
-  const fmtLat = () => `${cur.lat.toFixed(4)}\u00b0 ${cur.latH}`;
-  const fmtLon = () => `${Math.abs(cur.lon).toFixed(4)}\u00b0 ${cur.lonH}`;
-  const fmtM = () =>
-    typeof cur.mv === "number" ? `${cur.mv.toFixed(cur.mdec)} ${cur.mu}`.trim() : cur.mv;
-
-  function setRealm(id) {
-    const d = TLM[id] || TLM.canopy;
-    cur = {
-      baseLat: d.lat[0], lat: d.lat[0], latH: d.lat[1],
-      baseLon: d.lon[0], lon: d.lon[0], lonH: d.lon[1],
-      mk: d.m[0], baseMv: d.m[1], mv: d.m[1], mu: d.m[2], mdec: d.m[3],
-    };
-    spinTo(el.lat, fmtLat());
-    spinTo(el.lon, fmtLon());
-    spinTo(el.mk, cur.mk);
-    spinTo(el.mv, fmtM());
-    el.cells.forEach((cell, i) =>
-      spinTo(cell, String((d.seed * 37 + i * 53) % 1000).padStart(3, "0"))
-    );
-    spinTo(el.sys, d.sys);
-  }
-
-  /* Real-time jitter around each base value → a "live sensor" feel. */
-  let drift = 0;
-  let cellClk = 0;
-  let lastTs = 0;
-  function loop(ts) {
-    const dt = lastTs ? ts - lastTs : 0;
-    lastTs = ts;
-    if (cur && canAnimate()) {
-      drift += dt;
-      if (drift >= 110) {
-        drift = 0;
-        cur.lat = cur.baseLat + (Math.random() - 0.5) * 0.0032;
-        cur.lon = cur.baseLon + (Math.random() - 0.5) * 0.0032;
-        if (typeof cur.mv === "number") {
-          const jit = cur.mdec === 2 ? 0.03 : cur.mdec === 1 ? 0.6 : 1.6;
-          cur.mv = cur.baseMv + (Math.random() - 0.5) * jit;
-        }
-        if (el.lat) el.lat.textContent = fmtLat();
-        if (el.lon) el.lon.textContent = fmtLon();
-        if (el.mv) el.mv.textContent = fmtM();
-      }
-      cellClk += dt;
-      if (cellClk >= 850 && el.cells.length) {
-        cellClk = 0;
-        const i = (Math.random() * el.cells.length) | 0;
-        el.cells[i].textContent = String((Math.random() * 1000) | 0).padStart(3, "0");
-      }
-    }
-    requestAnimationFrame(loop);
-  }
-
-  setRealm("canopy");
-  document.addEventListener("realm:change", (e) => setRealm(e.detail && e.detail.id));
-  requestAnimationFrame(loop);
 }
 
 /* =========================================================
@@ -2126,11 +1877,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initReveals();
   initWorldTree();
   initEnvTransition();
-  initHud();
-  initTelemetry();
   initFooter();
   initGlow();
-  initCursor();
   initHeroMap();
   initClock();
 });
