@@ -210,7 +210,7 @@ const PROJECTS = {
     credit: "Corresponding author · with A. Kruskie and D. R. Chavas · Purdue EAPS",
   },
   training: {
-    title: "GIS Training & NSF Workshop",
+    title: "GIS Training & NSF Cybertraining Workshop",
     locus: "Indiana · statewide",
     year: "2025-26",
     image: {
@@ -221,30 +221,68 @@ const PROJECTS = {
     anim: "modules",
     visual: "",
     problem:
-      "Geospatial skills are a bottleneck for researchers whose work needs them.",
+      "Geospatial skills are a bottleneck for researchers whose work needs them, especially in the social sciences.",
     methods:
-      "Authored six open Carpentries-based modules covering the geospatial data lifecycle; taught hands-on QGIS, remote sensing, and Python at the two-day Purdue-NSF workshop.",
+      "Authored the geospatial Python track end to end (Census API, GeoPandas, and core coding in Jupyter) and co-developed the QGIS module series for Purdue's NSF-funded cybertraining project; taught the hands-on Python and Census API sessions at the two-day Purdue-NSF GIS Cybertraining for the Social Sciences workshop.",
     results:
-      "An open curriculum in active statewide use.",
+      "An open, Carpentries-based curriculum, taught live and published for anyone to reuse.",
     keyFinding:
-      "An open GIS curriculum now in active statewide use: 100+ researchers, 40+ professionals trained hands-on.",
+      "Built the Python track of an NSF cybertraining curriculum and taught it live to 30 GIS professors and political scientists.",
     stats: [
-      { v: "6", l: "open modules" },
-      { v: "100+", l: "researchers using it" },
-      { v: "40+", l: "professionals trained" },
-      { v: "2", l: "day Purdue-NSF workshop" },
+      { v: "6", l: "open modules authored" },
+      { v: "30", l: "professors and political scientists" },
+      { v: "2", l: "tracks · QGIS + Python" },
+      { v: "100%", l: "open source · GitHub Pages" },
     ],
     findings: [
-      "6 open-source modules published via GitHub Pages",
-      "Used by 100+ researchers statewide",
-      "40+ GIS professionals trained at the workshop",
+      "Authored the full geospatial Python track: Census API, GeoPandas, and core coding, taught hands-on in Jupyter",
+      "Co-developed the QGIS track: cartography, raster and remote sensing, and satellite imagery analysis",
+      "30 GIS professors and political scientists trained at the two-day Purdue-NSF workshop",
+      "Day 2 capstone on designing and curating teaching modules; all materials published via GitHub Pages and shared on LinkedIn",
     ],
-    tools: ["QGIS", "Python", "Remote Sensing", "Carpentries", "GitHub Pages"],
+    tools: ["Python", "Census API", "GeoPandas", "QGIS", "Jupyter", "GitHub Pages"],
     links: [
       { label: "Training site ↗", url: "https://spatialturn.github.io" },
       { label: "Workshop ↗", url: "https://spatialturn.github.io/workshop2026.html" },
     ],
-    credit: "Purdue-NSF two-day workshop · open Carpentries-based curriculum",
+    credit: "NSF-funded Purdue cybertraining project · open Carpentries-based curriculum",
+  },
+  air: {
+    title: "How Does Climate Influence Air Quality?",
+    locus: "Contiguous U.S. · 12-county comparison",
+    year: "2024",
+    image: null,
+    anim: "",
+    visual: "air",
+    problem:
+      "Emissions and population explain part of a county's air. Does climate itself, the temperature, rain, and vegetation of a place, leave a measurable fingerprint on air quality?",
+    methods:
+      "Five county-level variables for the contiguous U.S., air quality, temperature, precipitation, population, and a vegetation-density raster, mapped in ArcGIS Pro, filtered and normalized in Python, then combined with table joins. Twelve representative counties, one rural, one suburban, and one urban across four climate types, scored 1-10 per variable against their air-quality score.",
+    results:
+      "Climate leaves a clear signal, and precipitation is its strongest lever: wet deposition physically scrubs particles from the air.",
+    keyFinding:
+      "The worst air is hot, dry, urban, and sparsely vegetated; the best is cool, rainy, rural, and green. Precipitation matters most.",
+    stats: [
+      { v: "5", l: "county-level variables" },
+      { v: "6", l: "national maps produced" },
+      { v: "12", l: "counties · 4 climate types" },
+      { v: "1-10", l: "normalized scoring" },
+    ],
+    findings: [
+      "Wet deposition: rainfall collects and removes particulates, so wetter counties breathe cleaner air",
+      "Heat accelerates pollution chemistry and its spread, degrading air quality in hot climates",
+      "Vegetation offsets other pressures: wet, green Florida outperforms its heat and population",
+      "Published with co-author Jaigan Allport as an interactive ArcGIS StoryMap",
+    ],
+    tools: ["ArcGIS Pro", "ArcGIS StoryMaps", "Python", "Table Joins"],
+    links: [
+      { label: "Open StoryMap ↗", url: "https://storymaps.arcgis.com/stories/9d728e05416c415cadaff7971d91125a" },
+    ],
+    credit: "with Jaigan Allport · published as an ArcGIS StoryMap",
+    embed: {
+      title: "How Does Climate Influence Air Quality?",
+      embedUrl: "https://storymaps.arcgis.com/stories/9d728e05416c415cadaff7971d91125a?cover=false",
+    },
   },
   ozone: {
     title: "Ozone Concentration vs. COVID-19 Spread",
@@ -286,21 +324,16 @@ const PROJECTS = {
 };
 
 /* ---------- Embedded StoryMaps ----------
-   To make an embed open at a specific section: in the StoryMaps
-   builder, hover that section's heading, copy its section link
-   (it ends in #ref-n-XXXXXX), and paste the full URL into
-   `embedUrl` below, keeping `?cover=false` before the #. */
-const EMBEDS = {
-  air: {
-    title: "How Does Climate Influence Air Quality?",
-    year: "2024",
-    anim: "air",
-    description:
-      "How climate itself shapes the air we breathe. Shown here: the approach.",
-    url: "https://storymaps.arcgis.com/stories/9d728e05416c415cadaff7971d91125a",
-    embedUrl: "https://storymaps.arcgis.com/stories/9d728e05416c415cadaff7971d91125a?cover=false",
-  },
-};
+   Empty for now: both StoryMaps have been promoted to full project
+   tiles (with the iframe embedded via each project's `embed` field).
+   To add a standalone embed card again: add an entry here
+   { key: { title, year, anim, description, url, embedUrl } } and
+   reference it in REALMS as { type: "embed", key }. To make an embed
+   open at a specific section: in the StoryMaps builder, hover that
+   section's heading, copy its section link (it ends in #ref-n-XXXXXX),
+   and paste the full URL into `embedUrl`, keeping `?cover=false`
+   before the #. */
+const EMBEDS = {};
 
 /* ---------- Realm architecture: the levels of the tree ----------
    Canopy = upper air / climate signal, Midgard = human layer,
@@ -311,7 +344,7 @@ const REALMS = [
     label: "Canopy",
     nodes: [
       { type: "project", key: "tc" },
-      { type: "embed", key: "air" },
+      { type: "project", key: "air" },
     ],
   },
   {
