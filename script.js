@@ -101,7 +101,7 @@ const VISUALS = {
 const PROJECTS = {
   food: {
     title: "Food Desert Analysis",
-    categoryLabel: "GIS & Analysis",
+    locus: "Indiana · Florida · any state",
     year: "2025",
     image: {
       src: "assets/food-figure.jpg",
@@ -116,6 +116,14 @@ const PROJECTS = {
       "Reproduces the USDA LILA methodology entirely from open sources: Census API demographics, TIGER boundaries, and OpenStreetMap supermarkets time-pinned to 2019, allocated to the same half-km grid USDA uses. Ships as twin notebooks: GeoPandas (Colab) and a pure arcpy port that runs in ArcGIS Pro's stock Python environment.",
     results:
       "Validated tract-by-tract against the official 2019 Atlas for Indiana and Florida: on average ~93% agreement on low-income, 75% on low-access, and 86% on LILA designations.",
+    keyFinding:
+      "Open data reproduces the proprietary USDA Atlas within ~93% tract-by-tract, in both GeoPandas and pure arcpy.",
+    stats: [
+      { v: "~93%", l: "USDA Atlas agreement" },
+      { v: "50", l: "states, parameterized" },
+      { v: "½ km", l: "allocation grid" },
+      { v: "2", l: "engines · GeoPandas + arcpy" },
+    ],
     findings: [
       "Fully parameterized: change two variables and the identical analysis runs for any of the 50 states, every input fetched live",
       "Dual implementation: the same pipeline in GeoPandas and in pure arcpy (Fishnet, SpatialJoin, ExtendTable), runnable at an ArcGIS Basic license with nothing to install",
@@ -126,10 +134,11 @@ const PROJECTS = {
     links: [
       { label: "Case study ↗", url: "https://spatialturn.github.io/CaseStudyFoodDesert/introduction.html" },
     ],
+    credit: "Independent build · validated against the USDA ERS Food Access Research Atlas",
   },
   seismic: {
     title: "Shallow Seismic Velocity & Hazard Potential",
-    categoryLabel: "Research",
+    locus: "40.5°N 123.5°W · N. California",
     year: "2023-24",
     image: {
       src: "assets/seismic-figure.jpg",
@@ -141,9 +150,17 @@ const PROJECTS = {
     problem:
       "Where will the ground shake hardest? Soft shallow sediments amplify earthquake damage.",
     methods:
-      "Benchmarked PCA against a custom grid-search on earthquake particle motion: 500+ synthetic datasets, then broadband records from 60 Northern California stations.",
+      "Benchmarked PCA against a custom grid-search on earthquake particle motion: 500+ synthetic datasets, then broadband records from 60 Northern California stations. No boreholes, no explosive sources; the velocity structure is recovered from the shaking itself.",
     results:
       "Shear-wave velocity maps flagging high ground-shaking risk zones.",
+    keyFinding:
+      "Shear-wave velocities as low as 1.8 km/s flag the soft-sediment zones that will shake hardest.",
+    stats: [
+      { v: "60", l: "seismic stations" },
+      { v: "16 / 20", l: "events passing QC" },
+      { v: "1.8 km/s", l: "lowest velocity" },
+      { v: "NSF", l: "funded research" },
+    ],
     findings: [
       "Velocities as low as 1.8 km/s mark high-shaking soft-sediment zones",
       "Grid-search resolves PCA's covariance bias at inconsistent wavelet arrivals",
@@ -155,36 +172,46 @@ const PROJECTS = {
       { label: "AGU abstract ↗", url: "https://ui.adsabs.harvard.edu/abs/2024AGUFMT53A...32K/abstract" },
       { label: "Poster (PDF)", url: "assets/seismic-poster.pdf" },
     ],
+    credit: "NSF-funded · with J. Delph and I. Kharjana · AGU Fall Meeting 2024",
   },
   tc: {
     title: "Global Tropical Cyclone Intensity Trends",
-    categoryLabel: "Research",
+    locus: "Global · 6 basins",
     year: "2025",
     image: {
       src: "assets/tc-figure.jpg",
-      alt: "Global maps comparing HURSAT and IBTrACS tropical cyclone wind-intensity trends, 1980 to 2016",
-      caption: "HURSAT vs. IBTrACS wind-intensity trends (Theil-Sen), 1980-2016",
+      alt: "Global maps comparing HURSAT and IBTrACS tropical cyclone wind-intensity trends over their 1980 to 2016 overlap",
+      caption: "HURSAT vs. IBTrACS wind-intensity trends (Theil-Sen), 1980-2016 overlap",
     },
     anim: "cyclone",
     visual: "",
     problem:
       "Are tropical cyclones actually getting stronger, or only some of them?",
     methods:
-      "45 years of IBTrACS and HURSAT records gridded at 4°×4°; Theil-Sen trends with bootstrap confidence intervals across storm-strength thresholds and time periods.",
+      "45 years of IBTrACS best-track records (1980-2024) gridded at 4°×4°, cross-validated against satellite-derived HURSAT over their 1980-2016 overlap; Theil-Sen trends with bootstrap confidence intervals across storm-strength thresholds and time periods.",
     results:
       "Intensification isolated to the strongest storms, not the full population.",
+    keyFinding:
+      "Intensification is real but concentrated: major hurricanes in the North Atlantic drive the signal, and it strengthens after 2000.",
+    stats: [
+      { v: "1980-2024", l: "study period" },
+      { v: "6", l: "ocean basins" },
+      { v: "4°×4°", l: "grid resolution" },
+      { v: "2", l: "datasets · HURSAT to 2016" },
+    ],
     findings: [
       "Major hurricanes (≥64 kt) show the clearest intensification, led by the North Atlantic",
       "The signal largely disappears when weaker systems (≥34 kt) are included",
       "Trends emerge strongest after 2000, tracking rapid ocean warming",
-      "Homogenized HURSAT mutes trends relative to best-track IBTrACS",
+      "Homogenized HURSAT (available through 2016) mutes trends relative to best-track IBTrACS",
     ],
     tools: ["Python", "xarray", "SciPy", "Cartopy", "NetCDF"],
     links: [{ label: "Paper (PDF)", url: "assets/tc-intensity-paper.pdf" }],
+    credit: "Corresponding author · with A. Kruskie and D. R. Chavas · Purdue EAPS",
   },
   training: {
     title: "GIS Training & NSF Workshop",
-    categoryLabel: "Teaching",
+    locus: "Indiana · statewide",
     year: "2025-26",
     image: {
       src: "assets/nsf-figure.jpg",
@@ -199,6 +226,14 @@ const PROJECTS = {
       "Authored six open Carpentries-based modules covering the geospatial data lifecycle; taught hands-on QGIS, remote sensing, and Python at the two-day Purdue-NSF workshop.",
     results:
       "An open curriculum in active statewide use.",
+    keyFinding:
+      "An open GIS curriculum now in active statewide use: 100+ researchers, 40+ professionals trained hands-on.",
+    stats: [
+      { v: "6", l: "open modules" },
+      { v: "100+", l: "researchers using it" },
+      { v: "40+", l: "professionals trained" },
+      { v: "2", l: "day Purdue-NSF workshop" },
+    ],
     findings: [
       "6 open-source modules published via GitHub Pages",
       "Used by 100+ researchers statewide",
@@ -209,6 +244,44 @@ const PROJECTS = {
       { label: "Training site ↗", url: "https://spatialturn.github.io" },
       { label: "Workshop ↗", url: "https://spatialturn.github.io/workshop2026.html" },
     ],
+    credit: "Purdue-NSF two-day workshop · open Carpentries-based curriculum",
+  },
+  ozone: {
+    title: "Ozone Concentration vs. COVID-19 Spread",
+    locus: "Marion IN · Los Angeles CA · Miami-Dade FL",
+    year: "2024",
+    image: null,
+    anim: "",
+    visual: "corr",
+    problem:
+      "Ground-level ozone weakens the immune system. Does county-level ozone track coronavirus infection rates, or is the published single-city correlation (r = 0.74, Zoran et al. 2020) an artifact of place?",
+    methods:
+      "Three counties chosen for contrasting climate and density. Federal case data arrived transposed (dates as columns) and was rebuilt with a custom Python script; then county-scale GIS in ArcGIS Pro: attribute selection, join-and-relate on shared dates, and spatial join, erase, and buffer analysis scoring medical-facility access as a secondary control.",
+    results:
+      "No universal correlation: Los Angeles r = 0.67, Marion County r = 0.36, Miami-Dade r ≈ 0, where ozone peaks in winter instead of summer.",
+    keyFinding:
+      "Ozone alone doesn't explain COVID-19 spread; the correlation collapses across climates, a more measured conclusion than prior published work.",
+    stats: [
+      { v: "3", l: "counties studied" },
+      { v: "2022", l: "study year" },
+      { v: "2,800 / 3,143", l: "counties with ozone data" },
+      { v: "0-0.67", l: "correlation range (r)" },
+    ],
+    findings: [
+      "Correlation collapses across climates: 0.67 (LA), 0.36 (Marion), ≈0 (Miami-Dade)",
+      "Miami-Dade's winter ozone peak reverses the seasonal pattern of the other two counties",
+      "Buffer analysis of medical-facility access built in as a control on outbreak severity",
+      "Published as an interactive ArcGIS StoryMap",
+    ],
+    tools: ["ArcGIS Pro", "ArcGIS StoryMaps", "Spatial Join", "Python"],
+    links: [
+      { label: "Open StoryMap ↗", url: "https://storymaps.arcgis.com/stories/498888cea683436899d8674de15b058e" },
+    ],
+    credit: "Independent research project · published as an ArcGIS StoryMap",
+    embed: {
+      title: "Ozone vs. COVID-19",
+      embedUrl: "https://storymaps.arcgis.com/stories/498888cea683436899d8674de15b058e?cover=false",
+    },
   },
 };
 
@@ -218,15 +291,6 @@ const PROJECTS = {
    (it ends in #ref-n-XXXXXX), and paste the full URL into
    `embedUrl` below, keeping `?cover=false` before the #. */
 const EMBEDS = {
-  ozone: {
-    title: "Ozone vs. COVID-19",
-    year: "2024",
-    anim: "corr",
-    description:
-      "Three climate zones, three answers: the correlation collapses from LA (0.67) to Miami (≈0). Shown here: the areas considered.",
-    url: "https://storymaps.arcgis.com/stories/498888cea683436899d8674de15b058e",
-    embedUrl: "https://storymaps.arcgis.com/stories/498888cea683436899d8674de15b058e?cover=false",
-  },
   air: {
     title: "How Does Climate Influence Air Quality?",
     year: "2024",
@@ -255,7 +319,7 @@ const REALMS = [
     label: "Midgard",
     nodes: [
       { type: "project", key: "food" },
-      { type: "embed", key: "ozone" },
+      { type: "project", key: "ozone" },
       { type: "project", key: "training" },
     ],
   },
@@ -561,18 +625,38 @@ function featureInner(p) {
        ${anim}`
     : VISUALS[p.visual] || "";
 
+  const kf = p.keyFinding
+    ? `<p class="key-finding"><span class="kf-label mono">Finding</span>${p.keyFinding}</p>`
+    : "";
+  const stats = p.stats
+    ? `<div class="card-stats" aria-label="Project metrics">${p.stats
+        .map(
+          (s) =>
+            `<div class="cstat"><span class="cstat-v mono">${s.v}</span><span class="cstat-l mono">${s.l}</span></div>`
+        )
+        .join("")}</div>`
+    : "";
+  const embed = p.embed
+    ? `<div class="embed-frame feature-embed">
+         <iframe src="${p.embed.embedUrl}" title="${p.embed.title} · ArcGIS StoryMap" loading="lazy" allowfullscreen allow="geolocation"></iframe>
+       </div>`
+    : "";
+  const credit = p.credit ? `<p class="card-credit mono">${p.credit}</p>` : "";
+
   return `
     <div class="feature">
       <div class="feature-visual${p.image ? " has-figure" : ""}">${visual}</div>
       <div class="feature-body">
         <div class="card-top">
-          <span class="card-cat">${p.categoryLabel}</span>
+          <span class="card-cat">${p.locus}</span>
           <span class="card-year">${p.year}</span>
         </div>
         <h3>${p.title}</h3>
         <div class="card-tools is-top" aria-label="Tools used">
           ${p.tools.map((t) => `<span class="tag">${t}</span>`).join("")}
         </div>
+        ${kf}
+        ${stats}
         <dl class="pmr">
           <div class="pmr-row"><dt class="mono">Problem</dt><dd>${p.problem}</dd></div>
           <div class="pmr-row"><dt class="mono">Methods</dt><dd>${p.methods}</dd></div>
@@ -581,11 +665,13 @@ function featureInner(p) {
         <ul class="findings">
           ${p.findings.map((f) => `<li>${f}</li>`).join("")}
         </ul>
+        ${embed}
         <div class="card-foot">
           <div class="card-links">${p.links
             .map((l) => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`)
             .join("")}</div>
         </div>
+        ${credit}
       </div>
     </div>`;
 }

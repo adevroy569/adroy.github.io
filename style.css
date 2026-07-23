@@ -361,6 +361,15 @@ main,
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
 }
 
+.hero-tag {
+  color: var(--ink);
+  font-size: clamp(0.84rem, 1.7vw, 0.95rem);
+  line-height: 1.5;
+  margin: 0.45rem 0 0;
+  max-width: 44ch;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
 .hero-stack {
   color: var(--muted);
   font-size: clamp(0.6rem, 1.4vw, 0.72rem);
@@ -972,6 +981,75 @@ main,
   padding: 0.24rem 0.68rem;
 }
 
+/* Finding-first callout: the project's conclusion before its methodology */
+.key-finding {
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.9rem 0.6rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.kf-label {
+  display: block;
+  color: var(--accent);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+/* Per-project stat readouts: quantified proof beside every claim */
+.card-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 0 0 1.1rem;
+}
+
+.cstat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  padding: 0.55rem 0.7rem 0.6rem;
+  background: var(--paper);
+  min-width: 0;
+}
+
+.cstat-v {
+  color: var(--accent-strong);
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cstat-l {
+  color: var(--muted);
+  font-size: 0.56rem;
+  letter-spacing: 0.07em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* Attribution / funding line at the card's base */
+.card-credit {
+  margin: 0.9rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px dashed color-mix(in srgb, var(--muted) 30%, transparent);
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .tag {
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -1036,6 +1114,18 @@ main,
 .embed-frame {
   border-top: 1px solid var(--line);
   background: var(--paper);
+}
+
+/* StoryMap embedded inside a project card (framed, not full-bleed) */
+.feature-embed {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 0 0 1.2rem;
+}
+
+.feature-embed iframe {
+  height: 430px;
 }
 
 .embed-frame iframe {
@@ -1407,6 +1497,14 @@ main,
   border-radius: var(--radius);
   transition: transform 0.35s var(--ease), border-color 0.3s ease,
     box-shadow 0.35s ease;
+}
+
+/* Wider tiles once the viewport can spare it: more horizontal room
+   for the stat grids and finding callouts without crowding the trunk */
+@media (min-width: 1121px) {
+  .tree-node {
+    width: min(720px, 100%);
+  }
 }
 
 .tree-node.is-embed {
@@ -1879,8 +1977,16 @@ main,
     gap: 0.15rem;
   }
 
+  .card-cat {
+    white-space: normal;
+  }
+
   .embed-frame iframe {
     height: 420px;
+  }
+
+  .feature-embed iframe {
+    height: 380px;
   }
 }
 
@@ -2001,8 +2107,8 @@ main,
 
   .node-row > .tree-node {
     margin: 0;
-    flex: 0 0 620px;
-    max-width: 620px;
+    flex: 0 0 720px;
+    max-width: 720px;
   }
 
   .node-row[data-side="left"] > .tree-node {
