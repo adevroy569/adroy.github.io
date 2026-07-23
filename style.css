@@ -927,6 +927,15 @@ main,
   margin: 0.7rem 0 0;
 }
 
+/* Short readable description beneath a figure's caption */
+.figure-desc {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
 .card-top {
   display: flex;
   justify-content: space-between;

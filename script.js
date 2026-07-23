@@ -116,6 +116,7 @@ const PROJECTS = {
         src: "assets/louisiana.jpg",
         alt: "Census tracts flagged Low-Income and Low-Access (LILA) across Louisiana in the 2024 run",
         caption: "Low-Income & Low-Access (LILA) tracts: Louisiana, 2024 run",
+        desc: "Red tracts are Low-Income & Low-Access (LILA) — USDA's food-desert definition: a low-income tract where a significant share of residents lives more than 1 mile from the nearest supermarket in urban areas, or more than 10 miles in rural areas.",
       },
     },
     mediaOrder: ["hero", "pair"],
@@ -150,13 +151,29 @@ const PROJECTS = {
       alt: "Map of grid-search shear-wave velocities at 60 seismic stations across Northern California",
       caption: "Grid-search shear-wave velocities, 60 stations across Northern California",
     },
-    /* Below the grid-search visual: why soft sediment shakes harder */
+    /* Between the grid-search hero and the shaking diagram: the
+       PCA-vs-grid-search misfit benchmark at 1.67 Hz */
+    mediaPair: {
+      image: {
+        src: "assets/1_67HzPCA.jpg",
+        alt: "PCA misfit heatmap of time window versus layer thickness at 1.67 Hz, with high error along later wavelet arrivals",
+        caption: "Time window vs. thickness misfit, 1.67 Hz: PCA",
+        desc: "Where PCA fails: wavelets arriving later return high misfits, because their vertical–radial correlation turns inconsistent and breaks the covariance the model depends on. Being far less computationally demanding, PCA is a relatively new model for this problem — but it cannot resolve this bias.",
+      },
+      image2: {
+        src: "assets/1_67HzGRID.jpg",
+        alt: "Grid-search misfit heatmap of time window versus layer thickness at 1.67 Hz, with consistently low error along every wavelet arrival",
+        caption: "Time window vs. thickness misfit, 1.67 Hz: grid-search",
+        desc: "The grid-search answer: searching directly over the angles that minimize misfit keeps error consistently low through every wavelet arrival — the systematic check that exposes and corrects PCA's covariance bias.",
+      },
+    },
+    /* Below the misfit pair: why soft sediment shakes harder */
     secondImage: {
       src: "assets/seismicshake.jpg",
       alt: "Diagram comparing seismic waves through bedrock with waves amplified in unconsolidated soft sediments, shaking the house above harder",
       caption: "Site amplification: the same seismic waves shake harder in unconsolidated (soft) sediments than on bedrock",
     },
-    mediaOrder: ["figure", "second"],
+    mediaOrder: ["figure", "pair", "second"],
     anim: "seis",
     visual: "",
     problem:
@@ -360,6 +377,10 @@ const REALMS = [
 ];
 
 const PURDUE_LNGLAT = [-86.9212, 40.4237];
+/* City-level framing: centred between the twin cities so West Lafayette
+   (holding the Purdue marker) fills the left half and Lafayette sits to
+   the right, across the Wabash. */
+const CITY_CENTER = [-86.898, 40.4215];
 
 function initHeroMap() {
   const container = $("#hero-map");
@@ -393,16 +414,16 @@ function initHeroMap() {
   dot.className = "pulse-dot";
   new maplibregl.Marker({ element: dot }).setLngLat(PURDUE_LNGLAT).addTo(map);
 
-  /* Neighborhood-level zoom, not street level */
-  const TARGET_ZOOM = 14;
+  /* City-level zoom: the whole of West Lafayette in view, Lafayette to the right */
+  const TARGET_ZOOM = 12;
 
   if (prefersReducedMotion) {
-    map.jumpTo({ center: PURDUE_LNGLAT, zoom: TARGET_ZOOM });
+    map.jumpTo({ center: CITY_CENTER, zoom: TARGET_ZOOM });
   } else {
     map.on("load", () => {
       setTimeout(() => {
         map.flyTo({
-          center: PURDUE_LNGLAT,
+          center: CITY_CENTER,
           zoom: TARGET_ZOOM,
           duration: 3400,
           essential: false,
@@ -526,12 +547,14 @@ function featureText(p, textViz) {
 }
 
 function figureHtml(img) {
+  const desc = img.desc ? `<p class="figure-desc">${img.desc}</p>` : "";
   return `
         <div class="prow-figure">
           <a class="figure" href="${img.src}" target="_blank" rel="noopener" aria-label="Open full-size figure: ${img.caption}">
             <img src="${img.src}" alt="${img.alt}" loading="lazy" />
           </a>
           <p class="figure-cap mono">${img.caption}</p>
+          ${desc}
         </div>`;
 }
 
@@ -550,12 +573,13 @@ function featureMedia(p, viz) {
     /* primary and secondary research figures */
     figure: p.image ? figureHtml(p.image) : "",
     second: p.secondImage ? figureHtml(p.secondImage) : "",
-    /* side-by-side row: figure on the left, compact live panel on the right */
+    /* side-by-side row: a figure beside a second figure or a compact live panel */
     pair: p.mediaPair
       ? `
         <div class="media-pair">
           ${p.mediaPair.image ? figureHtml(p.mediaPair.image) : ""}
-          ${viz && viz.placement === "pair" ? vizPanel(viz, { compact: true, noDesc: true }) : ""}
+          ${p.mediaPair.image2 ? figureHtml(p.mediaPair.image2) : ""}
+          ${viz && viz.placement === "pair" ? vizPanel(viz, { compact: true }) : ""}
         </div>`
       : "",
     embed: p.embed
@@ -602,7 +626,7 @@ const HUD_VIZ = {
     label: "EUCLIDEAN DECAY RASTER",
     foot: "ACCESS FIELD \u00b7 LIVE RECOMPUTE",
     placement: "pair",
-    desc: "The box is a region (think a county or census tract) divided into equal-area grid cells. Each cell is shaded by its straight-line (Euclidean) distance to the glowing point, which stands in for a supermarket. Cells farther from the store are darker; cells closer to it are lighter. A lighter cell means that patch of the region has better access to healthy food, and the whole field recomputes as the store location moves.",
+    desc: "The glowing, moving dot is a hypothetical mobile supermarket. Darker grid cells are regions farther away from that point — worse access — and lighter cells sit closer, meaning better access to fresh food. The whole field recomputes as the dot moves.",
   },
   training: {
     type: "sdi",
