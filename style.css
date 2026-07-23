@@ -9,6 +9,7 @@
   --paper-raised: #121e24;
   --ink: #e6edea;
   --muted: #93a6ab;
+  --ink-soft: #c9d5d8;
   --accent: #3fb8bf;
   --accent-strong: #6fd2d8;
   --contour: #c68f63;
@@ -112,7 +113,7 @@ h3 {
 }
 
 h2 {
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-size: clamp(2.1rem, 4.4vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.015em;
 }
@@ -779,7 +780,7 @@ main,
 }
 
 .realm {
-  padding: clamp(3.6rem, 8vw, 5.8rem) clamp(1rem, 5vw, 3rem);
+  padding: clamp(4rem, 9vw, 6.5rem) clamp(1rem, 5vw, 3rem);
 }
 
 .realm-inner {
@@ -788,14 +789,14 @@ main,
 }
 
 .realm-sub {
-  color: var(--muted);
-  font-size: 0.95rem;
-  max-width: 56ch;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  max-width: 64ch;
   margin: -0.3rem 0 0;
 }
 
 .section-head {
-  margin-bottom: 2.6rem;
+  margin-bottom: 1.9rem;
 }
 
 .eyebrow {
@@ -809,28 +810,143 @@ main,
   margin-right: 0.35rem;
 }
 
-/* ---------- Featured work (inside tree nodes) ---------- */
-.feature {
-  display: flex;
-  flex-direction: column;
+/* ---------- Realm stat bands: giant recruiter callouts ---------- */
+.realm-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.4rem 2rem;
+  padding: 1.5rem 0 1.7rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: clamp(2.6rem, 5vw, 4rem);
 }
 
-.feature-visual {
+@media (min-width: 761px) {
+  .realm-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.rstat {
+  min-width: 0;
+}
+
+.rstat-v {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.9rem, 3.6vw, 2.7rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px rgba(63, 184, 191, 0.35);
+}
+
+.rstat-v small {
+  font-size: 0.44em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-left: 0.12em;
+}
+
+.rstat-l {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* ---------- Project rows: open text beside a bordered media plate ---------- */
+.prow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.2rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .prow {
+    grid-template-columns: 1fr 1fr;
+    column-gap: clamp(3rem, 5vw, 4.5rem);
+  }
+
+  .project-row[data-side="left"] .prow-media {
+    order: -1;
+  }
+}
+
+.prow-text {
+  min-width: 0;
+}
+
+.prow-text h3 {
+  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.75rem;
+}
+
+/* Media plate: the sleek bordered viewport for the live canvas,
+   research figure, and/or StoryMap; the twig plugs into its port */
+.prow-media {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  border-bottom: 1px solid var(--line);
+  gap: 0.95rem;
+  min-width: 0;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  transition: transform 0.35s var(--ease), border-color 0.3s ease,
+    box-shadow 0.35s ease;
+}
+
+.project-row:hover .prow-media {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: var(--shadow);
+}
+
+.prow-anim {
+  border: 1px solid var(--line);
+  border-radius: 6px;
   background:
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px),
     var(--paper);
   background-size: 26px 26px, 26px 26px, auto;
-  padding: 1.3rem 1.2rem;
+  padding: 0.9rem 1rem;
 }
 
-.feature-visual svg {
+.prow-anim svg {
   width: 100%;
-  height: clamp(110px, 13vw, 148px);
+  height: 96px;
+}
+
+.prow-anim.anim-corr {
+  padding: 1.1rem 1.2rem;
+}
+
+.prow-figure {
+  min-width: 0;
+}
+
+.prow-embed {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.prow-media .prow-embed iframe {
+  display: block;
+  width: 100%;
+  height: 540px;
+  border: 0;
 }
 
 /* Hero figures (research imagery) */
@@ -861,13 +977,6 @@ main,
   margin: 0.7rem 0 0;
 }
 
-/* ---------- Feature body ---------- */
-.feature-body {
-  padding: 1.6rem 1.8rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
 .card-top {
   display: flex;
   justify-content: space-between;
@@ -889,13 +998,6 @@ main,
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--muted);
-}
-
-.feature h3 {
-  font-size: clamp(1.3rem, 2.4vw, 1.55rem);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin-bottom: 0.7rem;
 }
 
 /* Problem → Methods → Results */
@@ -920,9 +1022,14 @@ main,
 
 .pmr dd {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.55;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.pmr dd b {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .pmr-row:first-child dd {
@@ -942,7 +1049,7 @@ main,
 .findings li {
   position: relative;
   padding-left: 1.1rem;
-  font-size: 0.9rem;
+  font-size: 0.93rem;
   color: var(--ink);
   line-height: 1.5;
 }
@@ -954,14 +1061,35 @@ main,
   color: var(--accent);
 }
 
-/* Links footer (badges now live at the top of the card) */
-.card-foot {
-  margin-top: auto;
+/* Action buttons: prominent, recruiter-facing CTAs per project */
+.card-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.card-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 0.7rem 1.2rem;
+  gap: 0.45rem;
+  padding: 0.62rem 1.1rem;
+  border-radius: 9px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--accent-strong);
+  font-weight: 600;
+  font-size: 0.87rem;
+  transition: transform 0.25s var(--ease), background-color 0.25s ease,
+    border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-btn:hover {
+  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .card-tools {
@@ -983,13 +1111,13 @@ main,
 
 /* Finding-first callout: the project's conclusion before its methodology */
 .key-finding {
-  margin: 0 0 1rem;
-  padding: 0.55rem 0.9rem 0.6rem;
+  margin: 0 0 1.1rem;
+  padding: 0.6rem 0.95rem 0.65rem;
   border-left: 3px solid var(--accent);
   border-radius: 0 6px 6px 0;
   background: color-mix(in srgb, var(--accent) 7%, transparent);
   color: var(--ink);
-  font-size: 0.95rem;
+  font-size: 1.02rem;
   line-height: 1.55;
 }
 
@@ -1000,43 +1128,6 @@ main,
   letter-spacing: 0.14em;
   text-transform: uppercase;
   margin-bottom: 0.2rem;
-}
-
-/* Per-project stat readouts: quantified proof beside every claim */
-.card-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-  margin: 0 0 1.1rem;
-}
-
-.cstat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.22rem;
-  padding: 0.55rem 0.7rem 0.6rem;
-  background: var(--paper);
-  min-width: 0;
-}
-
-.cstat-v {
-  color: var(--accent-strong);
-  font-size: 0.92rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.cstat-l {
-  color: var(--muted);
-  font-size: 0.56rem;
-  letter-spacing: 0.07em;
-  line-height: 1.4;
-  text-transform: uppercase;
 }
 
 /* Attribution / funding line at the card's base */
@@ -1060,20 +1151,8 @@ main,
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
-.card-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.1rem;
-}
-
-.card-links a {
-  font-size: 0.88rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
 .card-desc {
-  color: var(--muted);
+  color: var(--ink-soft);
   font-size: 0.92rem;
   margin: 0;
 }
@@ -1116,18 +1195,6 @@ main,
   background: var(--paper);
 }
 
-/* StoryMap embedded inside a project card (framed, not full-bleed) */
-.feature-embed {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-  margin: 0 0 1.2rem;
-}
-
-.feature-embed iframe {
-  height: 430px;
-}
-
 .embed-frame iframe {
   display: block;
   width: 100%;
@@ -1145,26 +1212,6 @@ main,
 
 .viz-label-end {
   text-anchor: end;
-}
-
-/* Animation strip beneath a hero figure */
-.visual-anim {
-  margin-top: 0.9rem;
-  border-top: 1px solid var(--line);
-  padding-top: 0.7rem;
-}
-
-.visual-anim svg {
-  width: 100%;
-  height: 64px;
-}
-
-.visual-anim.anim-cyclone svg {
-  height: 118px;
-}
-
-.visual-anim.anim-euclid svg {
-  height: 96px;
 }
 
 /* Animation strip inside StoryMap embed cards */
@@ -1486,7 +1533,7 @@ main,
 .node-list {
   display: flex;
   flex-direction: column;
-  gap: clamp(2.8rem, 6vw, 4.4rem);
+  gap: clamp(4rem, 8vw, 6.5rem);
 }
 
 .tree-node {
@@ -1497,14 +1544,6 @@ main,
   border-radius: var(--radius);
   transition: transform 0.35s var(--ease), border-color 0.3s ease,
     box-shadow 0.35s ease;
-}
-
-/* Wider tiles once the viewport can spare it: more horizontal room
-   for the stat grids and finding callouts without crowding the trunk */
-@media (min-width: 1121px) {
-  .tree-node {
-    width: min(720px, 100%);
-  }
 }
 
 .tree-node.is-embed {
@@ -1528,13 +1567,27 @@ main,
 .node-center {
   margin-left: auto;
   margin-right: auto;
-  width: min(920px, 100%);
+  width: min(1160px, 100%);
 }
 
 .tree-node:hover {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   box-shadow: var(--shadow);
+}
+
+/* Project rows are open, full-width sections; the chrome lives on the plate */
+.project-row {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.project-row:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
 }
 
 /* Inner wrapper clips media to the rounded frame while chips overflow */
@@ -1597,6 +1650,11 @@ main,
   right: 16px;
 }
 
+.project-row[data-side="right"] .node-tag {
+  left: auto;
+  right: 16px;
+}
+
 /* Twig port: the diamond where the branch plugs into the tile */
 .node-port {
   position: absolute;
@@ -1615,6 +1673,14 @@ main,
 }
 
 .node-right .node-port {
+  left: -6px;
+}
+
+.project-row[data-side="left"] .node-port {
+  right: -6px;
+}
+
+.project-row[data-side="right"] .node-port {
   left: -6px;
 }
 
@@ -1640,7 +1706,7 @@ main,
 }
 
 .about-node .node-body {
-  padding: 2rem clamp(1.2rem, 4vw, 2.4rem) 2.2rem;
+  padding: 2.4rem clamp(1.4rem, 5vw, 3.2rem) 2.6rem;
 }
 
 .about-node .section-head {
@@ -1663,8 +1729,8 @@ main,
 
 .about-text {
   margin: 0;
-  color: var(--muted);
-  max-width: 62ch;
+  color: var(--ink-soft);
+  max-width: 70ch;
 }
 
 .traverse {
@@ -1748,7 +1814,7 @@ main,
 
 .wp-label {
   display: block;
-  color: var(--muted);
+  color: var(--ink-soft);
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -1879,9 +1945,9 @@ main,
   }
 }
 
-/* The tree simplifies to a straight timeline on small screens:
-   the SVG canopy fades out; a quiet vertical line takes over. */
-@media (max-width: 900px) {
+/* The tree simplifies to a straight timeline once the two-column
+   grid stacks: the SVG canopy fades out; a vertical line takes over. */
+@media (max-width: 1023px) {
   #tree-layer {
     display: none;
   }
@@ -1979,22 +2045,17 @@ main,
     height: 420px;
   }
 
-  .feature-embed iframe {
-    height: 380px;
+  .prow-media .prow-embed iframe {
+    height: 420px;
   }
 }
 
 /* ===================================================================
-   HUD viz panels — interactive mini-visualizations beside tiles
+   HUD viz — live canvas visualizations (centerpiece of media plates)
    =================================================================== */
-.node-row {
-  display: block;
-}
-
 .hud-viz {
-  display: block; /* standard stacked block by default; becomes a sticky side panel at xl */
+  display: block;
   width: 100%;
-  margin-top: 1.1rem;
 }
 
 .hud-viz-frame {
@@ -2080,9 +2141,9 @@ main,
 .hud-viz-desc {
   margin: 10px 0 0;
   font-family: var(--font-body);
-  font-size: 0.74rem;
-  line-height: 1.55;
-  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
 }
 
 .hud-viz-desc b {
@@ -2090,41 +2151,19 @@ main,
   font-weight: 700;
 }
 
-/* Layout: side panel fills the tile's outer gap, sticky while reading */
-@media (min-width: 1280px) {
-  .node-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
-  }
+/* Inside a media plate the HUD frame sheds its own chrome (the
+   plate provides the border, background, and corner brackets) */
+.prow-media .hud-viz-frame {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  overflow: visible;
+}
 
-  .node-row > .tree-node {
-    margin: 0;
-    flex: 0 0 720px;
-    max-width: 720px;
-  }
+.prow-media .hud-viz-corner {
+  display: none;
+}
 
-  .node-row[data-side="left"] > .tree-node {
-    order: 0;
-  }
-  .node-row[data-side="left"] > .hud-viz {
-    order: 1;
-  }
-  .node-row[data-side="right"] > .tree-node {
-    order: 1;
-  }
-  .node-row[data-side="right"] > .hud-viz {
-    order: 0;
-  }
-
-  .hud-viz {
-    display: block;
-    flex: 0 0 336px;
-    width: 336px;
-    margin-top: 0; /* reset the stacked-block spacing when it becomes a side panel */
-    position: sticky;
-    top: 12vh; /* your "top: 12%" as a viewport-consistent offset that clears the fixed nav */
-    align-self: flex-start;
-  }
+.prow-media .viz-canvas {
+  height: clamp(300px, 26vw, 430px);
 }

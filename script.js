@@ -113,17 +113,11 @@ const PROJECTS = {
     problem:
       "USDA's Food Access Research Atlas, the authoritative food-desert dataset, is frozen at 2019 and built on proprietary store directories researchers can't re-run.",
     methods:
-      "Reproduces the USDA LILA methodology entirely from open sources: Census API demographics, TIGER boundaries, and OpenStreetMap supermarkets time-pinned to 2019, allocated to the same half-km grid USDA uses. Ships as twin notebooks: GeoPandas (Colab) and a pure arcpy port that runs in ArcGIS Pro's stock Python environment.",
+      "Reproduces the USDA LILA methodology entirely from open sources: <b>Census API</b> demographics, TIGER boundaries, and OpenStreetMap supermarkets time-pinned to 2019, allocated to the same half-km grid USDA uses. Ships as twin notebooks: <b>GeoPandas</b> (Colab) and a pure <b>arcpy</b> port that runs in <b>ArcGIS Pro</b>'s stock Python environment.",
     results:
       "Validated tract-by-tract against the official 2019 Atlas for Indiana and Florida: on average ~93% agreement on low-income, 75% on low-access, and 86% on LILA designations.",
     keyFinding:
       "Open data reproduces the proprietary USDA Atlas within ~93% tract-by-tract, in both GeoPandas and pure arcpy.",
-    stats: [
-      { v: "~93%", l: "USDA Atlas agreement" },
-      { v: "50", l: "states, parameterized" },
-      { v: "½ km", l: "allocation grid" },
-      { v: "2", l: "engines · GeoPandas + arcpy" },
-    ],
     findings: [
       "Fully parameterized: change two variables and the identical analysis runs for any of the 50 states, every input fetched live",
       "Dual implementation: the same pipeline in GeoPandas and in pure arcpy (Fishnet, SpatialJoin, ExtendTable), runnable at an ArcGIS Basic license with nothing to install",
@@ -132,7 +126,7 @@ const PROJECTS = {
     ],
     tools: ["ArcGIS Pro (arcpy)", "Python", "GeoPandas", "Census API", "OpenStreetMap"],
     links: [
-      { label: "Case study ↗", url: "https://spatialturn.github.io/CaseStudyFoodDesert/introduction.html" },
+      { label: "View Interactive Case Study ↗", url: "https://spatialturn.github.io/CaseStudyFoodDesert/introduction.html" },
     ],
     credit: "Independent build · validated against the USDA ERS Food Access Research Atlas",
   },
@@ -150,17 +144,11 @@ const PROJECTS = {
     problem:
       "Where will the ground shake hardest? Soft shallow sediments amplify earthquake damage.",
     methods:
-      "Benchmarked PCA against a custom grid-search on earthquake particle motion: 500+ synthetic datasets, then broadband records from 60 Northern California stations. No boreholes, no explosive sources; the velocity structure is recovered from the shaking itself.",
+      "Benchmarked PCA against a custom grid-search on earthquake particle motion in <b>MATLAB</b>: 500+ synthetic datasets generated via <b>Linux</b> shell scripting, then broadband records from 60 Northern California stations. No boreholes, no explosive sources; the velocity structure is recovered from the shaking itself.",
     results:
       "Shear-wave velocity maps flagging high ground-shaking risk zones.",
     keyFinding:
       "Shear-wave velocities as low as 1.8 km/s flag the soft-sediment zones that will shake hardest.",
-    stats: [
-      { v: "60", l: "seismic stations" },
-      { v: "16 / 20", l: "events passing QC" },
-      { v: "1.8 km/s", l: "lowest velocity" },
-      { v: "NSF", l: "funded research" },
-    ],
     findings: [
       "Velocities as low as 1.8 km/s mark high-shaking soft-sediment zones",
       "Grid-search resolves PCA's covariance bias at inconsistent wavelet arrivals",
@@ -169,8 +157,8 @@ const PROJECTS = {
     ],
     tools: ["MATLAB", "Linux / Bash", "PCA", "Seismology"],
     links: [
-      { label: "AGU abstract ↗", url: "https://ui.adsabs.harvard.edu/abs/2024AGUFMT53A...32K/abstract" },
-      { label: "Poster (PDF)", url: "assets/seismic-poster.pdf" },
+      { label: "AGU Abstract ↗", url: "https://ui.adsabs.harvard.edu/abs/2024AGUFMT53A...32K/abstract" },
+      { label: "Download Poster (PDF)", url: "assets/seismic-poster.pdf" },
     ],
     credit: "NSF-funded · with J. Delph and I. Kharjana · AGU Fall Meeting 2024",
   },
@@ -188,17 +176,11 @@ const PROJECTS = {
     problem:
       "Are tropical cyclones actually getting stronger, or only some of them?",
     methods:
-      "45 years of IBTrACS best-track records (1980-2024) gridded at 4°×4°, cross-validated against satellite-derived HURSAT over their 1980-2016 overlap; Theil-Sen trends with bootstrap confidence intervals across storm-strength thresholds and time periods.",
+      "45 years of IBTrACS best-track records (1980-2024) gridded at 4°×4° in <b>Python</b> with <b>xarray</b>, cross-validated against satellite-derived HURSAT over their 1980-2016 overlap; Theil-Sen trends (<b>SciPy</b>) with bootstrap confidence intervals across storm-strength thresholds and time periods.",
     results:
       "Intensification isolated to the strongest storms, not the full population.",
     keyFinding:
       "Intensification is real but concentrated: major hurricanes in the North Atlantic drive the signal, and it strengthens after 2000.",
-    stats: [
-      { v: "1980-2024", l: "study period" },
-      { v: "6", l: "ocean basins" },
-      { v: "4°×4°", l: "grid resolution" },
-      { v: "2", l: "datasets · HURSAT to 2016" },
-    ],
     findings: [
       "Major hurricanes (≥64 kt) show the clearest intensification, led by the North Atlantic",
       "The signal largely disappears when weaker systems (≥34 kt) are included",
@@ -206,7 +188,10 @@ const PROJECTS = {
       "Homogenized HURSAT (available through 2016) mutes trends relative to best-track IBTrACS",
     ],
     tools: ["Python", "xarray", "SciPy", "Cartopy", "NetCDF"],
-    links: [{ label: "Paper (PDF)", url: "assets/tc-intensity-paper.pdf" }],
+    links: [
+      { label: "Read the Paper (PDF)", url: "assets/tc-intensity-paper.pdf" },
+      { label: "Source Code ↗", url: "https://github.com/adevroy569" },
+    ],
     credit: "Corresponding author · with A. Kruskie and D. R. Chavas · Purdue EAPS",
   },
   training: {
@@ -223,17 +208,11 @@ const PROJECTS = {
     problem:
       "Geospatial skills are a bottleneck for researchers whose work needs them, especially in the social sciences.",
     methods:
-      "Authored the geospatial Python track end to end (Census API, GeoPandas, and core coding in Jupyter) and co-developed the QGIS module series for Purdue's NSF-funded cybertraining project; taught the hands-on Python and Census API sessions at the two-day Purdue-NSF GIS Cybertraining for the Social Sciences workshop.",
+      "Authored the geospatial <b>Python</b> track end to end (<b>Census API</b>, <b>GeoPandas</b>, and core coding in <b>Jupyter</b>) and co-developed the <b>QGIS</b> module series for Purdue's NSF-funded cybertraining project; taught the hands-on Python and Census API sessions at the two-day Purdue-NSF GIS Cybertraining for the Social Sciences workshop.",
     results:
       "An open, Carpentries-based curriculum, taught live and published for anyone to reuse.",
     keyFinding:
       "Built the Python track of an NSF cybertraining curriculum and taught it live to 30 GIS professors and political scientists.",
-    stats: [
-      { v: "6", l: "open modules authored" },
-      { v: "30", l: "professors and political scientists" },
-      { v: "2", l: "tracks · QGIS + Python" },
-      { v: "100%", l: "open source · GitHub Pages" },
-    ],
     findings: [
       "Authored the full geospatial Python track: Census API, GeoPandas, and core coding, taught hands-on in Jupyter",
       "Co-developed the QGIS track: cartography, raster and remote sensing, and satellite imagery analysis",
@@ -242,8 +221,8 @@ const PROJECTS = {
     ],
     tools: ["Python", "Census API", "GeoPandas", "QGIS", "Jupyter", "GitHub Pages"],
     links: [
-      { label: "Training site ↗", url: "https://spatialturn.github.io" },
-      { label: "Workshop ↗", url: "https://spatialturn.github.io/workshop2026.html" },
+      { label: "Training Site ↗", url: "https://spatialturn.github.io" },
+      { label: "Workshop 2026 ↗", url: "https://spatialturn.github.io/workshop2026.html" },
     ],
     credit: "NSF-funded Purdue cybertraining project · open Carpentries-based curriculum",
   },
@@ -257,17 +236,11 @@ const PROJECTS = {
     problem:
       "Emissions and population explain part of a county's air. Does climate itself, the temperature, rain, and vegetation of a place, leave a measurable fingerprint on air quality?",
     methods:
-      "Five county-level variables for the contiguous U.S., air quality, temperature, precipitation, population, and a vegetation-density raster, mapped in ArcGIS Pro, filtered and normalized in Python, then combined with table joins. Twelve representative counties, one rural, one suburban, and one urban across four climate types, scored 1-10 per variable against their air-quality score.",
+      "Five county-level variables for the contiguous U.S., air quality, temperature, precipitation, population, and a vegetation-density raster, mapped in <b>ArcGIS Pro</b>, filtered and normalized in <b>Python</b>, then combined with table joins. Twelve representative counties, one rural, one suburban, and one urban across four climate types, scored 1-10 per variable against their air-quality score.",
     results:
       "Climate leaves a clear signal, and precipitation is its strongest lever: wet deposition physically scrubs particles from the air.",
     keyFinding:
       "The worst air is hot, dry, urban, and sparsely vegetated; the best is cool, rainy, rural, and green. Precipitation matters most.",
-    stats: [
-      { v: "5", l: "county-level variables" },
-      { v: "6", l: "national maps produced" },
-      { v: "12", l: "counties · 4 climate types" },
-      { v: "1-10", l: "normalized scoring" },
-    ],
     findings: [
       "Wet deposition: rainfall collects and removes particulates, so wetter counties breathe cleaner air",
       "Heat accelerates pollution chemistry and its spread, degrading air quality in hot climates",
@@ -276,7 +249,7 @@ const PROJECTS = {
     ],
     tools: ["ArcGIS Pro", "ArcGIS StoryMaps", "Python", "Table Joins"],
     links: [
-      { label: "Open StoryMap ↗", url: "https://storymaps.arcgis.com/stories/9d728e05416c415cadaff7971d91125a" },
+      { label: "View Interactive StoryMap ↗", url: "https://storymaps.arcgis.com/stories/9d728e05416c415cadaff7971d91125a" },
     ],
     credit: "with Jaigan Allport · published as an ArcGIS StoryMap",
     embed: {
@@ -294,17 +267,11 @@ const PROJECTS = {
     problem:
       "Ground-level ozone weakens the immune system. Does county-level ozone track coronavirus infection rates, or is the published single-city correlation (r = 0.74, Zoran et al. 2020) an artifact of place?",
     methods:
-      "Three counties chosen for contrasting climate and density. Federal case data arrived transposed (dates as columns) and was rebuilt with a custom Python script; then county-scale GIS in ArcGIS Pro: attribute selection, join-and-relate on shared dates, and spatial join, erase, and buffer analysis scoring medical-facility access as a secondary control.",
+      "Three counties chosen for contrasting climate and density. Federal case data arrived transposed (dates as columns) and was rebuilt with a custom <b>Python</b> script; then county-scale GIS in <b>ArcGIS Pro</b>: attribute selection, join-and-relate on shared dates, and spatial join, erase, and buffer analysis scoring medical-facility access as a secondary control.",
     results:
       "No universal correlation: Los Angeles r = 0.67, Marion County r = 0.36, Miami-Dade r ≈ 0, where ozone peaks in winter instead of summer.",
     keyFinding:
       "Ozone alone doesn't explain COVID-19 spread; the correlation collapses across climates, a more measured conclusion than prior published work.",
-    stats: [
-      { v: "3", l: "counties studied" },
-      { v: "2022", l: "study year" },
-      { v: "2,800 / 3,143", l: "counties with ozone data" },
-      { v: "0-0.67", l: "correlation range (r)" },
-    ],
     findings: [
       "Correlation collapses across climates: 0.67 (LA), 0.36 (Marion), ≈0 (Miami-Dade)",
       "Miami-Dade's winter ozone peak reverses the seasonal pattern of the other two counties",
@@ -313,7 +280,7 @@ const PROJECTS = {
     ],
     tools: ["ArcGIS Pro", "ArcGIS StoryMaps", "Spatial Join", "Python"],
     links: [
-      { label: "Open StoryMap ↗", url: "https://storymaps.arcgis.com/stories/498888cea683436899d8674de15b058e" },
+      { label: "View Interactive StoryMap ↗", url: "https://storymaps.arcgis.com/stories/498888cea683436899d8674de15b058e" },
     ],
     credit: "Independent research project · published as an ArcGIS StoryMap",
     embed: {
@@ -645,41 +612,30 @@ function initHeroMetrics() {
   });
 }
 
-/* ---------- Node inner markup (features + embeds unchanged) ---------- */
-function featureInner(p) {
-  const anim = p.anim
-    ? `<div class="visual-anim anim-${p.anim}">${VISUALS[p.anim]}</div>`
-    : "";
-  const visual = p.image
-    ? `<a class="figure" href="${p.image.src}" target="_blank" rel="noopener" aria-label="Open full-size figure: ${p.image.caption}">
-         <img src="${p.image.src}" alt="${p.image.alt}" loading="lazy" />
-       </a>
-       <p class="figure-cap mono">${p.image.caption}</p>
-       ${anim}`
-    : VISUALS[p.visual] || "";
-
+/* ---------- Node inner markup: split project rows ----------
+   Each project renders as a wide two-column row: open text on one
+   side (locus, title, badges, finding, PMR, findings, action
+   buttons, credit) and a bordered media plate on the other. The
+   plate is the centerpiece: the live HUD canvas where one exists,
+   otherwise the project's animated strip, plus the research figure
+   and/or embedded StoryMap. The twig plugs into the plate's port. */
+function featureText(p) {
   const kf = p.keyFinding
     ? `<p class="key-finding"><span class="kf-label mono">Finding</span>${p.keyFinding}</p>`
     : "";
-  const stats = p.stats
-    ? `<div class="card-stats" aria-label="Project metrics">${p.stats
-        .map(
-          (s) =>
-            `<div class="cstat"><span class="cstat-v mono">${s.v}</span><span class="cstat-l mono">${s.l}</span></div>`
-        )
-        .join("")}</div>`
-    : "";
-  const embed = p.embed
-    ? `<div class="embed-frame feature-embed">
-         <iframe src="${p.embed.embedUrl}" title="${p.embed.title} · ArcGIS StoryMap" loading="lazy" allowfullscreen allow="geolocation"></iframe>
-       </div>`
-    : "";
+  const buttons =
+    p.links && p.links.length
+      ? `<div class="card-actions">${p.links
+          .map(
+            (l) =>
+              `<a class="card-btn" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`
+          )
+          .join("")}</div>`
+      : "";
   const credit = p.credit ? `<p class="card-credit mono">${p.credit}</p>` : "";
 
   return `
-    <div class="feature">
-      <div class="feature-visual${p.image ? " has-figure" : ""}">${visual}</div>
-      <div class="feature-body">
+      <div class="prow-text">
         <div class="card-top">
           <span class="card-cat">${p.locus}</span>
           <span class="card-year">${p.year}</span>
@@ -689,7 +645,6 @@ function featureInner(p) {
           ${p.tools.map((t) => `<span class="tag">${t}</span>`).join("")}
         </div>
         ${kf}
-        ${stats}
         <dl class="pmr">
           <div class="pmr-row"><dt class="mono">Problem</dt><dd>${p.problem}</dd></div>
           <div class="pmr-row"><dt class="mono">Methods</dt><dd>${p.methods}</dd></div>
@@ -698,15 +653,34 @@ function featureInner(p) {
         <ul class="findings">
           ${p.findings.map((f) => `<li>${f}</li>`).join("")}
         </ul>
-        ${embed}
-        <div class="card-foot">
-          <div class="card-links">${p.links
-            .map((l) => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`)
-            .join("")}</div>
-        </div>
+        ${buttons}
         ${credit}
-      </div>
-    </div>`;
+      </div>`;
+}
+
+function featureMedia(p, viz) {
+  const vizHtml = viz ? vizPanel(viz) : "";
+  const animKey = p.anim || p.visual;
+  const anim =
+    !viz && animKey && VISUALS[animKey]
+      ? `<div class="prow-anim anim-${animKey}">${VISUALS[animKey]}</div>`
+      : "";
+  const figure = p.image
+    ? `
+        <div class="prow-figure">
+          <a class="figure" href="${p.image.src}" target="_blank" rel="noopener" aria-label="Open full-size figure: ${p.image.caption}">
+            <img src="${p.image.src}" alt="${p.image.alt}" loading="lazy" />
+          </a>
+          <p class="figure-cap mono">${p.image.caption}</p>
+        </div>`
+    : "";
+  const embed = p.embed
+    ? `
+        <div class="embed-frame prow-embed">
+          <iframe src="${p.embed.embedUrl}" title="${p.embed.title} · ArcGIS StoryMap" loading="lazy" allowfullscreen allow="geolocation"></iframe>
+        </div>`
+    : "";
+  return vizHtml + anim + figure + embed;
 }
 
 function embedInner(e) {
@@ -765,7 +739,7 @@ function vizStage(type) {
 
 function vizPanel(viz) {
   return `
-    <aside class="hud-viz hud-viz--${viz.type}" aria-hidden="true">
+    <aside class="hud-viz hud-viz--${viz.type}">
       <div class="hud-viz-frame">
         <span class="hud-viz-corner c-tl"></span>
         <span class="hud-viz-corner c-br"></span>
@@ -773,38 +747,50 @@ function vizPanel(viz) {
           <span class="hud-viz-title mono">${viz.label}</span>
           <span class="hud-viz-live mono">\u25cf LIVE</span>
         </div>
-        <div class="hud-viz-stage">${vizStage(viz.type)}</div>
+        <div class="hud-viz-stage" aria-hidden="true">${vizStage(viz.type)}</div>
         <div class="hud-viz-foot mono" data-viz-foot>${viz.foot}</div>
         ${viz.desc ? `<p class="hud-viz-desc">${viz.desc}</p>` : ""}
       </div>
     </aside>`;
 }
 
-/* ---------- Render realms: nodes alternate left / right ---------- */
+/* ---------- Render realms: wide two-column rows, media side alternates ---------- */
 function renderRealms() {
-  let side = "left"; /* global alternation so the trunk snakes consistently */
+  let side = "right"; /* media side; text leads on the left for the first row */
   REALMS.forEach((realm) => {
     const host = $(`#realm-${realm.id}`);
     if (!host) return;
     host.innerHTML = realm.nodes
       .map((n, i) => {
-        const isEmbed = n.type === "embed";
-        const inner = isEmbed ? embedInner(EMBEDS[n.key]) : featureInner(PROJECTS[n.key]);
         const num = String(i + 1).padStart(2, "0");
-        const node = `
-          <article class="tree-node ${side === "left" ? "node-left" : "node-right"}${isEmbed ? " is-embed" : ""} glow reveal" data-side="${side}">
+        if (n.type === "embed") {
+          /* Legacy standalone StoryMap card (none active; kept for reuse) */
+          return `
+          <article class="tree-node is-embed node-center glow reveal" data-side="center">
             <i class="node-corner c-tl" aria-hidden="true"></i>
             <i class="node-corner c-br" aria-hidden="true"></i>
-            <span class="node-tag mono">${realm.label} · N-${num}${isEmbed ? " · StoryMap" : ""}</span>
+            <span class="node-tag mono">${realm.label} · N-${num} · StoryMap</span>
             <span class="node-port" aria-hidden="true"></span>
-            <div class="node-body">${inner}</div>
+            <div class="node-body">${embedInner(EMBEDS[n.key])}</div>
           </article>`;
-        const viz = !isEmbed ? HUD_VIZ[n.key] : null;
-        const html = viz
-          ? `<div class="node-row" data-side="${side}">${node}${vizPanel(viz)}</div>`
-          : node;
-        side = side === "left" ? "right" : "left";
-        return html;
+        }
+        const p = PROJECTS[n.key];
+        const viz = HUD_VIZ[n.key] || null;
+        const row = `
+          <article class="tree-node project-row reveal" data-side="${side}">
+            <div class="prow">
+              ${featureText(p)}
+              <div class="prow-media glow">
+                ${featureMedia(p, viz)}
+                <i class="node-corner c-tl" aria-hidden="true"></i>
+                <i class="node-corner c-br" aria-hidden="true"></i>
+                <span class="node-tag mono">${realm.label} · N-${num}</span>
+                <span class="node-port" aria-hidden="true"></span>
+              </div>
+            </div>
+          </article>`;
+        side = side === "right" ? "left" : "right";
+        return row;
       })
       .join("");
   });
@@ -841,7 +827,7 @@ function initWorldTree() {
   if (!layer) return;
 
   const NS = "http://www.w3.org/2000/svg";
-  const mq = window.matchMedia("(min-width: 901px)");
+  const mq = window.matchMedia("(min-width: 1024px)");
   const ANCHOR_Y = 84; /* twig plugs in this far below each node's top (matches .node-port) */
 
   let svg = null;
@@ -962,45 +948,51 @@ function initWorldTree() {
     const cx = W * 0.5;
     const sway = clamp(W * 0.07, 70, 150);
 
-    /* Gather node geometry in document space */
+    /* Gather node geometry in document space. Branch rows anchor at
+       their media plate's port (on the plate's inner edge, facing the
+       central gutter between the text and media columns). */
     const info = nodes.map((el) => {
       const pos = docPos(el);
       const w = el.offsetWidth;
       const h = el.offsetHeight;
-      const side = el.dataset.side || "left";
-      return {
-        el,
-        side,
-        top: pos.y,
-        bottom: pos.y + h,
-        left: pos.x,
-        right: pos.x + w,
-        anchorX: side === "left" ? pos.x + w : side === "right" ? pos.x : pos.x + w / 2,
-        anchorY: pos.y + ANCHOR_Y,
-      };
+      const side = el.dataset.side || "center";
+      const port = el.querySelector(".node-port");
+      let anchorX = pos.x + w / 2;
+      let anchorY = pos.y + ANCHOR_Y;
+      if (side !== "center" && port) {
+        const pp = docPos(port);
+        anchorX = pp.x + port.offsetWidth / 2;
+        anchorY = pp.y + port.offsetHeight / 2;
+      }
+      return { el, side, top: pos.y, bottom: pos.y + h, anchorX, anchorY };
     });
     const branchNodes = info.filter((n) => n.side !== "center");
     const aboutNode = info.find((n) => n.side === "center");
 
-    /* --- Step 1: trunk waypoints, bending away from each node --- */
+    /* --- Step 1: trunk waypoints. The trunk threads the central gutter:
+       at each row it crosses to the opposite half of the gutter from that
+       row's port, so the alternating media sides snake it naturally, and
+       it swings wider in the open vertical gaps between rows. --- */
     const pts = [[cx, -20]];
     const firstY = branchNodes.length ? branchNodes[0].anchorY : H * 0.3;
     if (firstY > 500) {
       pts.push([cx + sway * 0.35, firstY * 0.45]);
       pts.push([cx - sway * 0.3, firstY * 0.78]);
     }
-    const GAP = 80; /* clearance between trunk and a node's near edge = twig length */
     branchNodes.forEach((n, i) => {
-      const dir = n.side === "left" ? 1 : -1;
-      const jitter = ((i * 73) % 13) - 6; /* deterministic, organic wobble */
-      /* Bend away from the node — and never pass beneath it */
-      let tx = cx + dir * (sway * 0.7) + jitter;
-      tx = n.side === "left" ? Math.max(tx, n.right + GAP) : Math.min(tx, n.left - GAP);
+      /* port left of centre → trunk sits right of it, and vice versa */
+      const dirAway = n.anchorX <= cx ? 1 : -1;
+      const gapHalf = Math.max(Math.abs(cx - n.anchorX), 16);
+      const jitter = (((i * 73) % 13) - 6) * 0.5; /* deterministic wobble */
+      const tx = cx + dirAway * Math.min(gapHalf * 0.55, 30) + jitter;
       pts.push([clamp(tx, 40, W - 40), n.anchorY]);
-      /* relief bend between distant nodes keeps the S-curve alive */
+      /* relief bend in the clear space between distant rows */
       const next = branchNodes[i + 1];
-      if (next && next.anchorY - n.anchorY > 760) {
-        pts.push([cx - dir * sway * 0.3, (n.anchorY + next.anchorY) / 2]);
+      if (next && next.anchorY - n.anchorY > 700) {
+        pts.push([
+          clamp(cx - dirAway * clamp(W * 0.055, 48, 110), 40, W - 40),
+          (n.anchorY + next.anchorY) / 2,
+        ]);
       }
     });
     let endPt;
