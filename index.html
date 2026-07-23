@@ -25,9 +25,6 @@
     <div class="env-glow env-glow--roots"></div>
   </div>
 
-  <!-- Background particle field: motes that shift behaviour per realm -->
-  <canvas id="particles" aria-hidden="true"></canvas>
-
   <!-- World-tree SVG layer: trunk, branches, twigs, roots (built by script.js) -->
   <div id="tree-layer" aria-hidden="true"></div>
 
@@ -64,11 +61,6 @@
               <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9Z"/></svg>
               <span id="clock-time"></span>
             </span>
-            <div class="hero-portrait reveal-load" style="--d:2">
-              <div class="portrait-wrap">
-                <img class="portrait" src="assets/portrait.jpg" alt="Portrait of Aniket Dev Roy" width="720" height="720" />
-              </div>
-            </div>
             <div class="hero-greeting reveal-load" style="--d:1">
               <p class="hello">Hello,</p>
               <h1 class="hero-name">I'm Aniket.</h1>
@@ -80,7 +72,7 @@
 
           <!-- Floating metrics dashboard: overlays the map's base edge on desktop,
                grids neatly beneath it on smaller viewports -->
-          <div class="hero-metrics reveal-load" style="--d:3" aria-label="Key metrics across GIS projects">
+          <div class="hero-metrics reveal-load" style="--d:2" aria-label="Key metrics across GIS projects">
             <div class="metric" title="Average tract-by-tract validation agreement against the official USDA Food Access Atlas using an entirely open-source data pipeline (multiple state runs).">
               <span class="metric-value"><span class="metric-num" data-count="93">93</span><span class="metric-suffix">%</span></span>
               <span class="metric-label mono">USDA Atlas validation, open-data pipeline</span>
@@ -109,7 +101,7 @@
           </div>
         </div>
         <div class="hero-below">
-          <div class="hero-ctas reveal-load" style="--d:4">
+          <div class="hero-ctas reveal-load" style="--d:3">
             <a class="btn btn-primary" href="#work">Explore My GIS Work (Climb the Tree) →</a>
             <a class="btn btn-resume" href="assets/resume.pdf" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M13.5 3v5.5H19"/><path d="M9 13h6M9 16.5h6"/></svg>

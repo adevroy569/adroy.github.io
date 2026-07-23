@@ -103,11 +103,22 @@ const PROJECTS = {
     title: "Food Desert Analysis",
     locus: "Indiana · Florida · any state",
     year: "2025",
-    image: {
-      src: "assets/food-figure.jpg",
-      alt: "Maps of distance to the nearest supermarket for Indiana and Florida, with store locations from 2019",
-      caption: "Distance to nearest supermarket: Indiana and Florida validation runs (stores: 2019)",
+    /* Hero visual: statewide distance-to-supermarket access surface */
+    heroImage: {
+      src: "assets/kentucky.jpg",
+      alt: "Statewide surface of distance to the nearest fresh, healthy food store across Kentucky; dark red marks areas farthest from a store",
+      caption: "Distance to nearest supermarket: Kentucky access surface (dark red = farthest from fresh food)",
     },
+    image: null,
+    /* Below the hero: LILA tract map beside a compact live decay raster */
+    mediaPair: {
+      image: {
+        src: "assets/louisiana.jpg",
+        alt: "Census tracts flagged Low-Income and Low-Access (LILA) across Louisiana in the 2024 run",
+        caption: "Low-Income & Low-Access (LILA) tracts: Louisiana, 2024 run",
+      },
+    },
+    mediaOrder: ["hero", "pair"],
     anim: "euclid",
     visual: "",
     problem:
@@ -139,6 +150,13 @@ const PROJECTS = {
       alt: "Map of grid-search shear-wave velocities at 60 seismic stations across Northern California",
       caption: "Grid-search shear-wave velocities, 60 stations across Northern California",
     },
+    /* Below the grid-search visual: why soft sediment shakes harder */
+    secondImage: {
+      src: "assets/seismicshake.jpg",
+      alt: "Diagram comparing seismic waves through bedrock with waves amplified in unconsolidated soft sediments, shaking the house above harder",
+      caption: "Site amplification: the same seismic waves shake harder in unconsolidated (soft) sediments than on bedrock",
+    },
+    mediaOrder: ["figure", "second"],
     anim: "seis",
     visual: "",
     problem:
@@ -166,11 +184,20 @@ const PROJECTS = {
     title: "Global Tropical Cyclone Intensity Trends",
     locus: "Global · 6 basins",
     year: "2025",
+    /* Hero visual: zonal-mean intensity trends by latitude, per basin */
+    heroImage: {
+      src: "assets/zonal.jpg",
+      alt: "Zonal-mean tropical cyclone intensity trends by latitude for six ocean basins plus a global panel, comparing IBTrACS and HURSAT with confidence bands",
+      caption: "Zonal intensity trends by latitude: IBTrACS vs. HURSAT mean intensity, six basins + global",
+    },
     image: {
       src: "assets/tc-figure.jpg",
       alt: "Global maps comparing HURSAT and IBTrACS tropical cyclone wind-intensity trends over their 1980 to 2016 overlap",
       caption: "HURSAT vs. IBTrACS wind-intensity trends (Theil-Sen), 1980-2016 overlap",
     },
+    mediaOrder: ["hero", "figure"],
+    /* Small rotating cyclone (genesis → recurvature) below the text column */
+    textAnim: "cyclone",
     anim: "cyclone",
     visual: "",
     problem:
@@ -203,6 +230,8 @@ const PROJECTS = {
       alt: "NDWI flood classification map of Sindh Province, Pakistan, from the 2022 flood, taught in the remote-sensing module",
       caption: "NDWI flood analysis, Sindh Province 2022, from the remote-sensing module",
     },
+    /* NDWI figure first, SDI layer-stack animation beneath it */
+    mediaOrder: ["figure", "viz"],
     anim: "modules",
     visual: "",
     problem:
@@ -330,181 +359,6 @@ const REALMS = [
   },
 ];
 
-/* ---------- Background particle system (vanilla Canvas) ----------
-   A lightweight motes field on its own <canvas>. Behaviour morphs across the
-   realms in lockstep with the mood layer: light-teal motes rise slowly in
-   Canopy, wind pushes them sideways in Midgard, warm sediment sinks in Roots.
-   This mirrors a React useEffect lifecycle — setup, one rAF loop, and a
-   resize/teardown path — but written for this vanilla site.
-   Perf: DPR capped at 2, particle count throttled (<=66 desktop / <=42 touch),
-   and motion is delta-timed so speed is identical at 60 / 120 / 144 Hz. */
-function initParticles() {
-  const canvas = $("#particles");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const TAU = Math.PI * 2;
-
-  /* Per-realm velocity field (px/second) + colour + horizontal sway amplitude. */
-  const FIELDS = {
-    canopy: { vx: 7, vy: -15, col: [125, 205, 214], sway: 11 }, /* light teal, rising    */
-    midgard: { vx: 20, vy: -1, col: [150, 172, 195], sway: 6 }, /* misty steel-blue wind, sideways */
-    roots: { vx: -4, vy: 15, col: [208, 150, 92], sway: 5 }, /* warm amber, sinking      */
-  };
-  const seq = ["canopy", "midgard", "roots"]
-    .map((k) => ({ el: document.querySelector(`[data-realm="${k}"]`), f: FIELDS[k] }))
-    .filter((o) => o.el && o.f);
-  const fallbackField = FIELDS.canopy;
-
-  let w = 0;
-  let h = 0;
-  let dpr = 1;
-  let pool = [];
-  let rafId = 0;
-  let last = 0;
-
-  const rand = (a, b) => a + Math.random() * (b - a);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const smooth = (t) => t * t * (3 - 2 * t);
-
-  /* Throttle count by viewport area, hard-capped for perf. */
-  function targetCount() {
-    const n = Math.round((w * h) / 15000);
-    const cap = finePointer ? 100 : 58; /* denser field, still light on touch */
-    return clamp(n, 40, cap);
-  }
-
-  function makeParticle() {
-    return {
-      x: Math.random() * w,
-      y: Math.random() * h,
-      radius: rand(1.0, 3.0),
-      alpha: rand(0.32, 0.72),
-      speed: rand(0.55, 1.4), /* personal multiplier on the field velocity */
-      swayFreq: rand(0.4, 1.1), /* rad/s for the horizontal wobble          */
-      swayPhase: Math.random() * TAU,
-      tint: rand(-0.14, 0.14), /* subtle brightness variance               */
-    };
-  }
-
-  function sizeCanvas() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = window.innerWidth;
-    h = window.innerHeight;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    canvas.style.width = w + "px";
-    canvas.style.height = h + "px";
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  /* Grow/shrink the pool to the throttled target without discarding existing
-     particles (keeps motion continuous through a resize). */
-  function fitPool() {
-    const target = targetCount();
-    while (pool.length < target) pool.push(makeParticle());
-    if (pool.length > target) pool.length = target;
-  }
-
-  /* Blend the three fields by the SAME anchors the mood layer uses, so the
-     motion turns over exactly when the background colour does. */
-  const anchor = (el) =>
-    el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.45;
-
-  function currentField() {
-    if (seq.length < 2) return fallbackField;
-    const y = window.scrollY;
-    const a = seq.map((s) => anchor(s.el));
-    if (y <= a[0]) return seq[0].f;
-    if (y >= a[a.length - 1]) return seq[seq.length - 1].f;
-    for (let i = 0; i < seq.length - 1; i++) {
-      if (y >= a[i] && y <= a[i + 1]) {
-        const t = smooth(clamp((y - a[i]) / (a[i + 1] - a[i] || 1), 0, 1));
-        const f = seq[i].f;
-        const g = seq[i + 1].f;
-        return {
-          vx: lerp(f.vx, g.vx, t),
-          vy: lerp(f.vy, g.vy, t),
-          sway: lerp(f.sway, g.sway, t),
-          col: [
-            lerp(f.col[0], g.col[0], t),
-            lerp(f.col[1], g.col[1], t),
-            lerp(f.col[2], g.col[2], t),
-          ],
-        };
-      }
-    }
-    return fallbackField;
-  }
-
-  const MARGIN = 8;
-  function step(field, dt, now) {
-    for (const p of pool) {
-      const swayX = field.sway * Math.sin(now * p.swayFreq + p.swayPhase);
-      p.x += (field.vx * p.speed + swayX) * dt;
-      p.y += field.vy * p.speed * dt;
-      /* wrap on every edge so density holds whichever way the field drifts */
-      if (p.x < -MARGIN) p.x = w + MARGIN;
-      else if (p.x > w + MARGIN) p.x = -MARGIN;
-      if (p.y < -MARGIN) p.y = h + MARGIN;
-      else if (p.y > h + MARGIN) p.y = -MARGIN;
-    }
-  }
-
-  function draw(field) {
-    ctx.clearRect(0, 0, w, h);
-    const [r, g, b] = field.col;
-    for (const p of pool) {
-      const tr = clamp(r + p.tint * 60, 0, 255) | 0;
-      const tg = clamp(g + p.tint * 60, 0, 255) | 0;
-      const tb = clamp(b + p.tint * 60, 0, 255) | 0;
-      const rgb = `${tr},${tg},${tb}`;
-      /* soft halo → atmospheric glow */
-      ctx.fillStyle = `rgba(${rgb},${(p.alpha * 0.3).toFixed(3)})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius * 2.6, 0, TAU);
-      ctx.fill();
-      /* bright core */
-      ctx.fillStyle = `rgba(${rgb},${p.alpha.toFixed(3)})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, TAU);
-      ctx.fill();
-    }
-  }
-
-  function frame(ts) {
-    const now = ts / 1000;
-    let dt = now - last;
-    last = now;
-    if (dt > 0.05) dt = 0.05; /* clamp after tab-switch/stalls → refresh-rate safe */
-    if (dt < 0) dt = 0;
-    const field = currentField();
-    step(field, dt, now);
-    draw(field);
-    rafId = requestAnimationFrame(frame);
-  }
-
-  /* --- lifecycle: setup + graceful resize (mirrors mount/cleanup) --- */
-  let resizeTimer = 0;
-  function onResize() {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      sizeCanvas();
-      fitPool();
-      if (prefersReducedMotion) draw(currentField());
-    }, 150);
-  }
-
-  sizeCanvas();
-  fitPool();
-  window.addEventListener("resize", onResize);
-
-  if (prefersReducedMotion) {
-    draw(currentField()); /* single static frame, no animation */
-    return;
-  }
-  last = performance.now() / 1000;
-  rafId = requestAnimationFrame(frame);
-}
 const PURDUE_LNGLAT = [-86.9212, 40.4237];
 
 function initHeroMap() {
@@ -619,7 +473,7 @@ function initHeroMetrics() {
    plate is the centerpiece: the live HUD canvas where one exists,
    otherwise the project's animated strip, plus the research figure
    and/or embedded StoryMap. The twig plugs into the plate's port. */
-function featureText(p) {
+function featureText(p, textViz) {
   const kf = p.keyFinding
     ? `<p class="key-finding"><span class="kf-label mono">Finding</span>${p.keyFinding}</p>`
     : "";
@@ -633,6 +487,17 @@ function featureText(p) {
           .join("")}</div>`
       : "";
   const credit = p.credit ? `<p class="card-credit mono">${p.credit}</p>` : "";
+  /* Small visuals anchored below the text content: an animated SVG strip
+     (e.g. the rotating cyclone, genesis → recurvature) and/or a compact
+     live HUD panel relocated from the media plate (e.g. the hypocenter
+     wavefront), filling the space beneath the credit line. */
+  const textAnim =
+    p.textAnim && VISUALS[p.textAnim]
+      ? `<div class="text-viz prow-anim anim-${p.textAnim}">${VISUALS[p.textAnim]}</div>`
+      : "";
+  const textPanel = textViz
+    ? `<div class="text-viz">${vizPanel(textViz, { compact: true })}</div>`
+    : "";
 
   return `
       <div class="prow-text">
@@ -655,32 +520,53 @@ function featureText(p) {
         </ul>
         ${buttons}
         ${credit}
+        ${textAnim}
+        ${textPanel}
       </div>`;
 }
 
-function featureMedia(p, viz) {
-  const vizHtml = viz ? vizPanel(viz) : "";
-  const animKey = p.anim || p.visual;
-  const anim =
-    !viz && animKey && VISUALS[animKey]
-      ? `<div class="prow-anim anim-${animKey}">${VISUALS[animKey]}</div>`
-      : "";
-  const figure = p.image
-    ? `
+function figureHtml(img) {
+  return `
         <div class="prow-figure">
-          <a class="figure" href="${p.image.src}" target="_blank" rel="noopener" aria-label="Open full-size figure: ${p.image.caption}">
-            <img src="${p.image.src}" alt="${p.image.alt}" loading="lazy" />
+          <a class="figure" href="${img.src}" target="_blank" rel="noopener" aria-label="Open full-size figure: ${img.caption}">
+            <img src="${img.src}" alt="${img.alt}" loading="lazy" />
           </a>
-          <p class="figure-cap mono">${p.image.caption}</p>
+          <p class="figure-cap mono">${img.caption}</p>
+        </div>`;
+}
+
+function featureMedia(p, viz) {
+  const animKey = p.anim || p.visual;
+  const blocks = {
+    /* full-size live HUD panel (placement "media") */
+    viz: viz && viz.placement !== "pair" ? vizPanel(viz) : "",
+    /* animated SVG strip fallback when no HUD panel exists */
+    anim:
+      !viz && animKey && VISUALS[animKey]
+        ? `<div class="prow-anim anim-${animKey}">${VISUALS[animKey]}</div>`
+        : "",
+    /* hero research image at the top of the plate */
+    hero: p.heroImage ? figureHtml(p.heroImage) : "",
+    /* primary and secondary research figures */
+    figure: p.image ? figureHtml(p.image) : "",
+    second: p.secondImage ? figureHtml(p.secondImage) : "",
+    /* side-by-side row: figure on the left, compact live panel on the right */
+    pair: p.mediaPair
+      ? `
+        <div class="media-pair">
+          ${p.mediaPair.image ? figureHtml(p.mediaPair.image) : ""}
+          ${viz && viz.placement === "pair" ? vizPanel(viz, { compact: true, noDesc: true }) : ""}
         </div>`
-    : "";
-  const embed = p.embed
-    ? `
+      : "",
+    embed: p.embed
+      ? `
         <div class="embed-frame prow-embed">
           <iframe src="${p.embed.embedUrl}" title="${p.embed.title} · ArcGIS StoryMap" loading="lazy" allowfullscreen allow="geolocation"></iframe>
         </div>`
-    : "";
-  return vizHtml + anim + figure + embed;
+      : "",
+  };
+  const order = p.mediaOrder || ["viz", "anim", "hero", "figure", "second", "pair", "embed"];
+  return order.map((k) => blocks[k] || "").join("");
 }
 
 function embedInner(e) {
@@ -703,32 +589,33 @@ function embedInner(e) {
     </div>`;
 }
 
-/* ---------- HUD viz panels: which tiles get a side visualization ----------
-   Keyed by project slug. Each appears once; the panel sits in the tile's outer
-   gap (tc/food/training → right, seismic → left, following node alternation). */
+/* ---------- HUD viz panels: which tiles get a live visualization ----------
+   Keyed by project slug. Each appears once. `placement` routes the panel:
+   "media" → full panel in the media plate (training: below the NDWI figure),
+   "pair"  → compact panel beside a figure in the plate's media-pair row
+             (food: small decay raster to the right of the Louisiana map),
+   "text"  → compact panel below the text column's credit line
+             (seismic: small hypocenter wavefront filling the space). */
 const HUD_VIZ = {
-  tc: {
-    type: "cyclo",
-    label: "ATLANTIC CYCLOGENESIS",
-    foot: "GENESIS \u00b7 TROPICAL ATLANTIC",
-    desc: "Each glowing point is a tropical cyclone forming over the warm tropical Atlantic. From genesis the storms drift west and northwest across the basin, carried by the prevailing trade winds. Some recurve poleward and head back out to sea, while others track far enough west to make landfall on North America. The fading trails are the kind of storm tracks a 45-year record of cyclone intensity is built from.",
-  },
   food: {
     type: "decay",
     label: "EUCLIDEAN DECAY RASTER",
     foot: "ACCESS FIELD \u00b7 LIVE RECOMPUTE",
+    placement: "pair",
     desc: "The box is a region (think a county or census tract) divided into equal-area grid cells. Each cell is shaded by its straight-line (Euclidean) distance to the glowing point, which stands in for a supermarket. Cells farther from the store are darker; cells closer to it are lighter. A lighter cell means that patch of the region has better access to healthy food, and the whole field recomputes as the store location moves.",
   },
   training: {
     type: "sdi",
     label: "SDI LAYER STACK",
     foot: "4 LAYERS \u00b7 WGS84",
+    placement: "media",
     desc: "A map is assembled as a stack of aligned layers sharing one footprint, shown here as four panes. <b>A</b> is the base map: reference terrain and coastlines. <b>B</b> is a raster layer of gridded, continuous data such as satellite imagery or a heatmap. <b>C</b> is a polygon vector layer of bounded areas like regions or zones. <b>D</b> is a point vector layer of discrete locations. Registered to the same coordinate system, the four layers combine into a single map: the core idea behind a Spatial Data Infrastructure (SDI).",
   },
   seismic: {
     type: "wavefront",
     label: "HYPOCENTER WAVEFRONT",
     foot: "V_S 1.8 km/s \u00b7 REFLECT",
+    placement: "text",
     desc: "Seismic waves originate deep within the earth at the hypocenter, an earthquake's point of origin. They radiate outward, and when they reach the surface they bounce (reflect) back down, making the ground shake. Measuring that shaking lets us work out what kind of sediments lie beneath the surface: soft, slow layers amplify the shaking and flag a higher ground-shaking hazard.",
   },
 };
@@ -737,9 +624,12 @@ function vizStage(type) {
   return `<canvas id="viz-${type}" class="viz-canvas"></canvas>`;
 }
 
-function vizPanel(viz) {
+function vizPanel(viz, opts = {}) {
+  const compactCls = opts.compact ? " hud-viz--compact" : "";
+  const desc =
+    viz.desc && !opts.noDesc ? `<p class="hud-viz-desc">${viz.desc}</p>` : "";
   return `
-    <aside class="hud-viz hud-viz--${viz.type}">
+    <aside class="hud-viz hud-viz--${viz.type}${compactCls}">
       <div class="hud-viz-frame">
         <span class="hud-viz-corner c-tl"></span>
         <span class="hud-viz-corner c-br"></span>
@@ -749,7 +639,7 @@ function vizPanel(viz) {
         </div>
         <div class="hud-viz-stage" aria-hidden="true">${vizStage(viz.type)}</div>
         <div class="hud-viz-foot mono" data-viz-foot>${viz.foot}</div>
-        ${viz.desc ? `<p class="hud-viz-desc">${viz.desc}</p>` : ""}
+        ${desc}
       </div>
     </aside>`;
 }
@@ -776,12 +666,14 @@ function renderRealms() {
         }
         const p = PROJECTS[n.key];
         const viz = HUD_VIZ[n.key] || null;
+        const mediaViz = viz && viz.placement !== "text" ? viz : null;
+        const textViz = viz && viz.placement === "text" ? viz : null;
         const row = `
           <article class="tree-node project-row reveal" data-side="${side}">
             <div class="prow">
-              ${featureText(p)}
+              ${featureText(p, textViz)}
               <div class="prow-media glow">
-                ${featureMedia(p, viz)}
+                ${featureMedia(p, mediaViz)}
                 <i class="node-corner c-tl" aria-hidden="true"></i>
                 <i class="node-corner c-br" aria-hidden="true"></i>
                 <span class="node-tag mono">${realm.label} · N-${num}</span>
@@ -1303,7 +1195,7 @@ function initEnvTransition() {
 }
 
 /* =========================================================
-   HUD viz engine — 4 mini-visualizations beside the tiles.
+   HUD viz engine — 3 mini-visualizations across the tiles.
    Shared harness fits the canvas for DPR, gates the rAF loop
    with an IntersectionObserver (only runs while on screen),
    refits on resize, and draws one static frame under
@@ -1372,156 +1264,7 @@ function mountViz(canvas, factory) {
   });
 }
 
-/* --- 1. CANOPY N-01: Atlantic cyclogenesis & landfall simulation --- */
-function cycloFactory({ ctx, w, h }) {
-  const TAU = Math.PI * 2;
-  const D2R = Math.PI / 180;
-  const foot = document.querySelector(".hud-viz--cyclo [data-viz-foot]");
-
-  /* Stylized continent outlines in normalized [0,1] canvas space (Atlantic view) */
-  const CONT = {
-    na: [[0.02,0.10],[0.10,0.05],[0.20,0.06],[0.28,0.10],[0.34,0.08],[0.40,0.12],[0.42,0.20],[0.38,0.24],[0.40,0.30],[0.35,0.34],[0.33,0.40],[0.30,0.42],[0.30,0.49],[0.26,0.46],[0.24,0.40],[0.20,0.36],[0.14,0.34],[0.10,0.28],[0.06,0.22],[0.04,0.16]],
-    sa: [[0.30,0.50],[0.36,0.52],[0.40,0.58],[0.44,0.66],[0.44,0.74],[0.42,0.82],[0.38,0.90],[0.34,0.96],[0.32,0.90],[0.30,0.80],[0.28,0.70],[0.27,0.60],[0.28,0.54]],
-    eu: [[0.64,0.14],[0.70,0.10],[0.76,0.06],[0.82,0.04],[0.80,0.10],[0.78,0.14],[0.74,0.16],[0.72,0.20],[0.68,0.20],[0.66,0.16]],
-    af: [[0.66,0.22],[0.72,0.20],[0.80,0.22],[0.86,0.28],[0.90,0.36],[0.90,0.46],[0.86,0.56],[0.82,0.66],[0.78,0.74],[0.74,0.82],[0.70,0.80],[0.68,0.72],[0.64,0.62],[0.60,0.52],[0.58,0.44],[0.60,0.36],[0.62,0.28]],
-  };
-  const NA = CONT.na;
-  const mx = (nx) => nx * w;
-  const my = (ny) => ny * h;
-
-  const contPath = (pts) => {
-    ctx.beginPath();
-    pts.forEach(([nx, ny], i) => {
-      const X = mx(nx), Y = my(ny);
-      i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
-    });
-    ctx.closePath();
-  };
-  /* ray-casting point-in-polygon (normalized space) for landfall over N. America */
-  const inNA = (px, py) => {
-    const x = px / w, y = py / h;
-    let inside = false;
-    for (let i = 0, j = NA.length - 1; i < NA.length; j = i++) {
-      const xi = NA[i][0], yi = NA[i][1], xj = NA[j][0], yj = NA[j][1];
-      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-    }
-    return inside;
-  };
-
-  const storms = [];
-  let spawnAcc = 0;
-  const SPAWN = 1500;
-  const MAX = 6;
-  const spawn = () => {
-    const oy = 0.40 + Math.random() * 0.10;
-    const ox = 0.50 + Math.random() * 0.02; /* over the tropical Atlantic, west of the African coast */
-    const speed = Math.min(w, h) * (0.00010 + Math.random() * 0.00006);
-    const turn = 0.006 + Math.random() * 0.020; /* deg per ms, steers N then NE */
-    storms.push({
-      x: mx(ox), y: my(oy),
-      theta: 190 + Math.random() * 15, /* 0=E 90=down 180=W 270=up → WNW start */
-      speed, turn,
-      willLandfall: Math.random() < 0.5,
-      wob: Math.random() * TAU, wobSp: 0.002 + Math.random() * 0.003,
-      trail: [], age: 0, life: 9000 + Math.random() * 4000,
-      alpha: 0, state: "grow",
-      hue: Math.random() < 0.25 ? "o" : "t",
-    });
-  };
-
-  return (dt, now) => {
-    ctx.clearRect(0, 0, w, h);
-
-    /* faint HUD graticule */
-    ctx.strokeStyle = "rgba(120,180,190,0.07)";
-    ctx.lineWidth = 0.5;
-    for (let gx = 0; gx <= 1.001; gx += 0.125) { ctx.beginPath(); ctx.moveTo(mx(gx), 0); ctx.lineTo(mx(gx), h); ctx.stroke(); }
-    for (let gy = 0; gy <= 1.001; gy += 0.16) { ctx.beginPath(); ctx.moveTo(0, my(gy)); ctx.lineTo(w, my(gy)); ctx.stroke(); }
-
-    /* continents */
-    for (const k in CONT) {
-      contPath(CONT[k]);
-      ctx.fillStyle = "rgba(63,184,191,0.045)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(130,185,195,0.28)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    /* genesis marker over the tropical Atlantic */
-    const gpx = mx(0.50), gpy = my(0.45);
-    ctx.beginPath();
-    ctx.arc(gpx, gpy, 3 + Math.sin(now * 0.004) * 1.2, 0, TAU);
-    ctx.strokeStyle = "rgba(214,150,90,0.5)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    spawnAcc += dt;
-    if (spawnAcc > SPAWN && storms.length < MAX) { spawnAcc = 0; spawn(); }
-
-    for (const s of storms) {
-      s.age += dt;
-      if (s.state === "grow") s.alpha = Math.min(1, s.alpha + dt * 0.003);
-      s.theta += s.turn * dt * (s.willLandfall ? 0.35 : 1); /* landfall storms curve less */
-      s.wob += s.wobSp * dt;
-      const th = (s.theta + Math.sin(s.wob) * 6) * D2R; /* squiggle */
-      s.x += Math.cos(th) * s.speed * dt;
-      s.y += Math.sin(th) * s.speed * dt;
-      s.trail.push([s.x, s.y]);
-      if (s.trail.length > 36) s.trail.shift();
-
-      const landed = inNA(s.x, s.y);
-      const off = s.x < -6 || s.y < -6 || s.y > h + 6;
-      if ((landed || off || s.age > s.life) && s.state === "grow") s.state = "die";
-      if (s.state === "die") s.alpha -= dt * 0.004;
-
-      const col = s.hue === "o" ? "214,150,90" : "63,184,191";
-      ctx.lineWidth = 1.5;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.strokeStyle = `rgba(${col},${(0.5 * s.alpha).toFixed(3)})`;
-      ctx.beginPath();
-      s.trail.forEach(([tx, ty], i) => (i ? ctx.lineTo(tx, ty) : ctx.moveTo(tx, ty)));
-      ctx.stroke();
-      if (s.alpha > 0.02) {
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, 2.4, 0, TAU);
-        ctx.fillStyle = `rgba(${col},${Math.min(1, s.alpha).toFixed(3)})`;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = `rgba(${col},0.9)`;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        if (landed) {
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, 6, 0, TAU);
-          ctx.strokeStyle = `rgba(255,180,120,${(0.6 * s.alpha).toFixed(2)})`;
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
-      }
-    }
-    for (let i = storms.length - 1; i >= 0; i--) {
-      if (storms[i].state === "die" && storms[i].alpha <= 0) storms.splice(i, 1);
-    }
-
-    /* continent labels (drawn last so they stay legible above the tracks) */
-    ctx.fillStyle = "rgba(150,196,206,0.82)";
-    ctx.font = "9px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    const LBL = [["NA", 0.19, 0.22], ["SA", 0.35, 0.72], ["EUROPE", 0.72, 0.11], ["AFRICA", 0.75, 0.50]];
-    for (const [txt, lx, ly] of LBL) ctx.fillText(txt, mx(lx), my(ly));
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-
-    if (foot) {
-      const land = storms.filter((s) => inNA(s.x, s.y)).length;
-      foot.textContent = `TRACKING ${storms.length} \u00b7 LANDFALL ${land}`;
-    }
-  };
-}
-
-/* --- 2. MIDGARD N-01: dynamic Euclidean distance decay grid --- */
+/* --- 1. MIDGARD N-01: dynamic Euclidean distance decay grid (compact, beside the Louisiana figure) --- */
 function decayFactory({ ctx, w, h }) {
   const TAU = Math.PI * 2;
   const foot = document.querySelector(".hud-viz--decay [data-viz-foot]");
@@ -1608,7 +1351,7 @@ function decayFactory({ ctx, w, h }) {
   };
 }
 
-/* --- 4. ROOTS N-01: hypocenter wavefront reflection cross-section --- */
+/* --- 3. ROOTS N-01: hypocenter wavefront reflection cross-section (compact, below the seismic text) --- */
 function wavefrontFactory({ ctx, w, h }) {
   const TAU = Math.PI * 2;
   const foot = document.querySelector(".hud-viz--wavefront [data-viz-foot]");
@@ -1711,7 +1454,7 @@ function wavefrontFactory({ ctx, w, h }) {
   };
 }
 
-/* --- 3. MIDGARD N-03: SDI flat 2x2 layer grid --- */
+/* --- 2. MIDGARD N-03: SDI flat 2x2 layer grid (below the NDWI figure) --- */
 function sdiFactory({ ctx, w, h }) {
   const TAU = Math.PI * 2;
   const foot = document.querySelector(".hud-viz--sdi [data-viz-foot]");
@@ -1893,14 +1636,12 @@ function sdiFactory({ ctx, w, h }) {
 }
 
 function initHudViz() {
-  mountViz(document.getElementById("viz-cyclo"), cycloFactory);
   mountViz(document.getElementById("viz-decay"), decayFactory);
   mountViz(document.getElementById("viz-sdi"), sdiFactory);
   mountViz(document.getElementById("viz-wavefront"), wavefrontFactory);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initParticles();
   renderRealms();
   initHudViz();
   initReveals();
