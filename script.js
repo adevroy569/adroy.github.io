@@ -1,5 +1,5 @@
 /* =========================================================
-   Aniket Dev Roy — Portfolio
+   Aniket Dev Roy · Portfolio
    World-tree (Yggdrasil) layout: scroll-grown SVG trunk,
    realm nodes, particle field, survey map
    ========================================================= */
@@ -113,15 +113,16 @@ const PROJECTS = {
     problem:
       "USDA's Food Access Research Atlas, the authoritative food-desert dataset, is frozen at 2019 and built on proprietary store directories researchers can't re-run.",
     methods:
-      "Reproduces the USDA LILA methodology entirely from open sources: Census API demographics, TIGER boundaries, and OpenStreetMap supermarkets time-pinned to 2019, allocated to the same half-km grid USDA uses.",
+      "Reproduces the USDA LILA methodology entirely from open sources: Census API demographics, TIGER boundaries, and OpenStreetMap supermarkets time-pinned to 2019, allocated to the same half-km grid USDA uses. Ships as twin notebooks: GeoPandas (Colab) and a pure arcpy port that runs in ArcGIS Pro's stock Python environment.",
     results:
       "Validated tract-by-tract against the official 2019 Atlas for Indiana and Florida: on average ~93% agreement on low-income, 75% on low-access, and 86% on LILA designations.",
     findings: [
       "Fully parameterized: change two variables and the identical analysis runs for any of the 50 states, every input fetched live",
+      "Dual implementation: the same pipeline in GeoPandas and in pure arcpy (Fishnet, SpatialJoin, ExtendTable), runnable at an ArcGIS Basic license with nothing to install",
       "Open data nearly matches the proprietary product, with built-in validation quantifying the gap tract by tract",
       "Time-pinned store snapshots compute years USDA never published, turning a static atlas into a change-over-time instrument",
     ],
-    tools: ["Python", "GeoPandas", "ArcGIS Pro", "Census API", "OpenStreetMap"],
+    tools: ["ArcGIS Pro (arcpy)", "Python", "GeoPandas", "Census API", "OpenStreetMap"],
     links: [
       { label: "Case study ↗", url: "https://spatialturn.github.io/CaseStudyFoodDesert/introduction.html" },
     ],
@@ -129,7 +130,7 @@ const PROJECTS = {
   seismic: {
     title: "Shallow Seismic Velocity & Hazard Potential",
     categoryLabel: "Research",
-    year: "2023–24",
+    year: "2023-24",
     image: {
       src: "assets/seismic-figure.jpg",
       alt: "Map of grid-search shear-wave velocities at 60 seismic stations across Northern California",
@@ -162,14 +163,14 @@ const PROJECTS = {
     image: {
       src: "assets/tc-figure.jpg",
       alt: "Global maps comparing HURSAT and IBTrACS tropical cyclone wind-intensity trends, 1980 to 2016",
-      caption: "HURSAT vs. IBTrACS wind-intensity trends (Theil–Sen), 1980–2016",
+      caption: "HURSAT vs. IBTrACS wind-intensity trends (Theil-Sen), 1980-2016",
     },
     anim: "cyclone",
     visual: "",
     problem:
       "Are tropical cyclones actually getting stronger, or only some of them?",
     methods:
-      "45 years of IBTrACS and HURSAT records gridded at 4°×4°; Theil–Sen trends with bootstrap confidence intervals across storm-strength thresholds and time periods.",
+      "45 years of IBTrACS and HURSAT records gridded at 4°×4°; Theil-Sen trends with bootstrap confidence intervals across storm-strength thresholds and time periods.",
     results:
       "Intensification isolated to the strongest storms, not the full population.",
     findings: [
@@ -184,7 +185,7 @@ const PROJECTS = {
   training: {
     title: "GIS Training & NSF Workshop",
     categoryLabel: "Teaching",
-    year: "2025–26",
+    year: "2025-26",
     image: {
       src: "assets/nsf-figure.jpg",
       alt: "NDWI flood classification map of Sindh Province, Pakistan, from the 2022 flood, taught in the remote-sensing module",
@@ -195,7 +196,7 @@ const PROJECTS = {
     problem:
       "Geospatial skills are a bottleneck for researchers whose work needs them.",
     methods:
-      "Authored six open Carpentries-based modules covering the geospatial data lifecycle; taught hands-on QGIS, remote sensing, and Python at the two-day Purdue–NSF workshop.",
+      "Authored six open Carpentries-based modules covering the geospatial data lifecycle; taught hands-on QGIS, remote sensing, and Python at the two-day Purdue-NSF workshop.",
     results:
       "An open curriculum in active statewide use.",
     findings: [
@@ -522,6 +523,31 @@ function initClock() {
   setInterval(tick, 30000);
 }
 
+/* ---------- Hero metrics: count-up readouts ----------
+   Values live as static text in the HTML (SEO / no-JS safe); JS
+   re-plays them as an instrument-style count-up on load. Under
+   prefers-reduced-motion the final values simply stay put. */
+function initHeroMetrics() {
+  const nums = $$(".metric-num[data-count]");
+  if (!nums.length || prefersReducedMotion) return;
+
+  const DUR = 1200;
+  const DELAY = 500; /* let the strip's reveal-load rise finish first */
+  const start = performance.now() + DELAY;
+
+  nums.forEach((el) => {
+    const end = parseFloat(el.dataset.count) || 0;
+    el.textContent = "0";
+    const tick = (now) => {
+      const t = clamp((now - start) / DUR, 0, 1);
+      const eased = 1 - Math.pow(1 - t, 3); /* ease-out cubic */
+      el.textContent = String(Math.round(end * eased));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
 /* ---------- Node inner markup (features + embeds unchanged) ---------- */
 function featureInner(p) {
   const anim = p.anim
@@ -544,6 +570,9 @@ function featureInner(p) {
           <span class="card-year">${p.year}</span>
         </div>
         <h3>${p.title}</h3>
+        <div class="card-tools is-top" aria-label="Tools used">
+          ${p.tools.map((t) => `<span class="tag">${t}</span>`).join("")}
+        </div>
         <dl class="pmr">
           <div class="pmr-row"><dt class="mono">Problem</dt><dd>${p.problem}</dd></div>
           <div class="pmr-row"><dt class="mono">Methods</dt><dd>${p.methods}</dd></div>
@@ -553,10 +582,6 @@ function featureInner(p) {
           ${p.findings.map((f) => `<li>${f}</li>`).join("")}
         </ul>
         <div class="card-foot">
-          <div class="card-tools">
-            <span class="tools-label mono">Tools</span>
-            ${p.tools.map((t) => `<span class="tag">${t}</span>`).join("")}
-          </div>
           <div class="card-links">${p.links
             .map((l) => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`)
             .join("")}</div>
@@ -580,7 +605,7 @@ function embedInner(e) {
       </div>
       ${e.anim ? `<div class="embed-anim">${VISUALS[e.anim]}</div>` : ""}
       <div class="embed-frame">
-        <iframe src="${e.embedUrl}" title="${e.title} — ArcGIS StoryMap" loading="lazy" allowfullscreen allow="geolocation"></iframe>
+        <iframe src="${e.embedUrl}" title="${e.title} · ArcGIS StoryMap" loading="lazy" allowfullscreen allow="geolocation"></iframe>
       </div>
     </div>`;
 }
@@ -593,13 +618,13 @@ const HUD_VIZ = {
     type: "cyclo",
     label: "ATLANTIC CYCLOGENESIS",
     foot: "GENESIS \u00b7 TROPICAL ATLANTIC",
-    desc: "Each glowing point is a tropical cyclone forming over the warm tropical Atlantic. From genesis the storms drift west and northwest across the basin, carried by the prevailing trade winds — some recurve poleward and head back out to sea, while others track far enough west to make landfall on North America. The fading trails are the kind of storm tracks a 45-year record of cyclone intensity is built from.",
+    desc: "Each glowing point is a tropical cyclone forming over the warm tropical Atlantic. From genesis the storms drift west and northwest across the basin, carried by the prevailing trade winds. Some recurve poleward and head back out to sea, while others track far enough west to make landfall on North America. The fading trails are the kind of storm tracks a 45-year record of cyclone intensity is built from.",
   },
   food: {
     type: "decay",
     label: "EUCLIDEAN DECAY RASTER",
     foot: "ACCESS FIELD \u00b7 LIVE RECOMPUTE",
-    desc: "The box is a region — think a county or census tract — divided into equal-area grid cells. Each cell is shaded by its straight-line (Euclidean) distance to the glowing point, which stands in for a supermarket. Cells farther from the store are darker; cells closer to it are lighter. A lighter cell means that patch of the region has better access to healthy food, and the whole field recomputes as the store location moves.",
+    desc: "The box is a region (think a county or census tract) divided into equal-area grid cells. Each cell is shaded by its straight-line (Euclidean) distance to the glowing point, which stands in for a supermarket. Cells farther from the store are darker; cells closer to it are lighter. A lighter cell means that patch of the region has better access to healthy food, and the whole field recomputes as the store location moves.",
   },
   training: {
     type: "sdi",
@@ -611,7 +636,7 @@ const HUD_VIZ = {
     type: "wavefront",
     label: "HYPOCENTER WAVEFRONT",
     foot: "V_S 1.8 km/s \u00b7 REFLECT",
-    desc: "Seismic waves originate deep within the earth at the hypocenter, an earthquake's point of origin. They radiate outward, and when they reach the surface they bounce (reflect) back down, making the ground shake. Measuring that shaking lets us work out what kind of sediments lie beneath the surface — soft, slow layers amplify the shaking and flag a higher ground-shaking hazard.",
+    desc: "Seismic waves originate deep within the earth at the hypocenter, an earthquake's point of origin. They radiate outward, and when they reach the surface they bounce (reflect) back down, making the ground shake. Measuring that shaking lets us work out what kind of sediments lie beneath the surface: soft, slow layers amplify the shaking and flag a higher ground-shaking hazard.",
   },
 };
 
@@ -1773,4 +1798,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initFooter();
   initHeroMap();
   initClock();
+  initHeroMetrics();
 });

@@ -1,6 +1,6 @@
 /* =========================================================
-   Aniket Dev Roy — Portfolio
-   "field atlas" at night — dark chart, petrol teal, crosses
+   Aniket Dev Roy · Portfolio
+   "field atlas" at night: dark chart, petrol teal, crosses
    ========================================================= */
 
 /* ---------- Tokens (dark only) ---------- */
@@ -230,6 +230,64 @@ main,
   transform: scaleX(1);
 }
 
+/* Hover translations: realm names decoded into industry terms
+   so the metaphor never slows a hiring manager down */
+.nav-link[data-tip] {
+  --tt-x: -50%;
+}
+
+.nav-link[data-tip]::before {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 13px);
+  left: 50%;
+  transform: translate(var(--tt-x), 5px);
+  padding: 0.34rem 0.66rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper-raised);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.25s var(--ease),
+    visibility 0s linear 0.22s;
+  z-index: 5;
+}
+
+/* Rightmost tooltip hugs the edge so it never overflows the viewport */
+.nav-link[data-tip]:last-child {
+  --tt-x: 0;
+}
+
+.nav-link[data-tip]:last-child::before {
+  left: auto;
+  right: 0;
+}
+
+.nav-link[data-tip]:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(var(--tt-x), 0);
+  transition-delay: 0s;
+}
+
+@media (hover: hover) {
+  .nav-link[data-tip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(var(--tt-x), 0);
+    transition-delay: 0s;
+  }
+}
+
 /* ---------- Hero / intro ---------- */
 .hero {
   position: relative;
@@ -290,6 +348,27 @@ main,
   letter-spacing: -0.03em;
   margin: 0;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+
+/* Immediate professional clarity: role + stack right under the name */
+.hero-role {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.02rem, 2.2vw, 1.32rem);
+  letter-spacing: -0.01em;
+  color: var(--contour);
+  margin: 0.5rem 0 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+.hero-stack {
+  color: var(--muted);
+  font-size: clamp(0.6rem, 1.4vw, 0.72rem);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  margin: 0.55rem 0 0;
+  max-width: 46ch;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
 }
 
 .hero-below {
@@ -431,7 +510,7 @@ main,
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(12, 21, 25, 0.86) 0%, rgba(12, 21, 25, 0.3) 26%, transparent 52%);
+  background: linear-gradient(to top, rgba(12, 21, 25, 0.88) 0%, rgba(12, 21, 25, 0.4) 32%, transparent 58%);
 }
 
 .map-fallback {
@@ -505,6 +584,131 @@ main,
   width: 144px;
   height: 144px;
   margin: 0;
+}
+
+/* ---------- Floating metrics dashboard ----------
+   Five quantified capability readouts. On desktop it overlays the
+   base edge of the hero map as a translucent instrument strip; on
+   smaller viewports it drops out of the overlay and grids neatly
+   beneath the map, inside the same card. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.metric {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.72rem 0.95rem 0.78rem;
+  min-width: 0;
+}
+
+.metric-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.55rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px rgba(63, 184, 191, 0.35);
+}
+
+.metric-suffix {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.metric-label {
+  color: var(--muted);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+  text-transform: uppercase;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Small viewports: strip becomes a neat hairline grid under the map */
+@media (max-width: 960px) {
+  .hero-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 55%, var(--paper-raised));
+  }
+
+  .metric:nth-child(even) {
+    border-left: 1px solid var(--line);
+  }
+
+  .metric:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+
+  .metric:last-child {
+    grid-column: 1 / -1;
+    border-left: 0;
+  }
+}
+
+/* Desktop: semi-transparent overlay row across the map's base */
+@media (min-width: 961px) {
+  .hero-metrics {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    display: flex;
+    border-top: 1px solid color-mix(in srgb, var(--line) 82%, var(--accent));
+    background: rgba(10, 18, 23, 0.6);
+    -webkit-backdrop-filter: blur(9px);
+    backdrop-filter: blur(9px);
+  }
+
+  .metric {
+    flex: 1 1 0;
+  }
+
+  .metric + .metric {
+    border-left: 1px solid rgba(230, 237, 234, 0.09);
+  }
+
+  /* Lift the greeting and portrait clear of the overlay strip */
+  .hero-greeting {
+    bottom: calc(84px + 1.2rem);
+  }
+
+  .hero-portrait {
+    bottom: calc(84px + 1.05rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .metric {
+    padding: 0.6rem 0.8rem 0.66rem;
+  }
+
+  .metric-value {
+    font-size: 1.35rem;
+  }
 }
 
 /* MapLibre chrome tuned to the design */
@@ -682,7 +886,7 @@ main,
   font-size: clamp(1.3rem, 2.4vw, 1.55rem);
   font-weight: 700;
   letter-spacing: -0.015em;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.7rem;
 }
 
 /* Problem → Methods → Results */
@@ -741,12 +945,12 @@ main,
   color: var(--accent);
 }
 
-/* Tools + links */
+/* Links footer (badges now live at the top of the card) */
 .card-foot {
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 0.7rem 1.2rem;
 }
@@ -758,11 +962,14 @@ main,
   gap: 0.4rem;
 }
 
-.tools-label {
-  color: var(--contour);
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  margin-right: 0.2rem;
+/* Tech-badge row directly under the project title: instant validation */
+.card-tools.is-top {
+  margin: 0 0 1.05rem;
+}
+
+.card-tools.is-top .tag {
+  font-size: 0.7rem;
+  padding: 0.24rem 0.68rem;
 }
 
 .tag {

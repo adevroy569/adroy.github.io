@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
-  <title>Aniket Dev Roy — Geo-Data Scientist</title>
-  <meta name="description" content="Portfolio of Aniket Dev Roy — geo-data scientist and GIS analyst mapping food access, seismic hazard, and tropical cyclone intensity." />
-  <meta property="og:title" content="Aniket Dev Roy — Geo-Data Scientist" />
-  <meta property="og:description" content="GIS analysis, seismic hazard research, and tropical cyclone climatology. M.S. Geo-Data Sciences, Purdue University." />
+  <title>Aniket Dev Roy · Geo-Data Scientist &amp; GIS Analyst</title>
+  <meta name="description" content="Portfolio of Aniket Dev Roy, geo-data scientist and GIS analyst mapping food access, seismic hazard, and tropical cyclone intensity with ArcGIS Pro, QGIS, and Python." />
+  <meta property="og:title" content="Aniket Dev Roy · Geo-Data Scientist &amp; GIS Analyst" />
+  <meta property="og:description" content="GIS analysis in ArcGIS Pro, QGIS, and Python: food access, seismic hazard research, and tropical cyclone climatology. M.S. Geo-Data Sciences, Purdue University." />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,5 28,27 4,27' fill='none' stroke='%233FB8BF' stroke-width='3'/%3E%3Ccircle cx='16' cy='21' r='2.5' fill='%233FB8BF'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,10 +41,10 @@
       <span class="brand-name">Aniket Dev Roy</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#work" class="nav-link">Canopy</a>
-      <a href="#midgard" class="nav-link">Midgard</a>
-      <a href="#roots" class="nav-link">Roots</a>
-      <a href="#about" class="nav-link">About</a>
+      <a href="#work" class="nav-link" data-tip="Atmospheric &amp; Cyclone Climate Trends">Canopy</a>
+      <a href="#midgard" class="nav-link" data-tip="Human Layer &amp; Food Desert Analysis">Midgard</a>
+      <a href="#roots" class="nav-link" data-tip="Seismic Hazard &amp; Geophysics Mapping">Roots</a>
+      <a href="#about" class="nav-link" data-tip="Surveyor's Log &amp; Experience">About</a>
     </nav>
   </header>
 
@@ -59,25 +59,57 @@
             <section id="hero-map" aria-label="Map flying into Purdue University, West Lafayette, Indiana"></section>
             <div class="map-tint" aria-hidden="true"></div>
             <div class="map-scrim" aria-hidden="true"></div>
-          </div>
-          <span class="map-clock mono" id="map-clock">
-            <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><g stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5.2"/><line x1="12" y1="18.8" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5.2" y2="12"/><line x1="18.8" y1="12" x2="21.5" y2="12"/><line x1="5.3" y1="5.3" x2="7.2" y2="7.2"/><line x1="16.8" y1="16.8" x2="18.7" y2="18.7"/><line x1="5.3" y1="18.7" x2="7.2" y2="16.8"/><line x1="16.8" y1="7.2" x2="18.7" y2="5.3"/></g></svg>
-            <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9Z"/></svg>
-            <span id="clock-time"></span>
-          </span>
-          <div class="hero-portrait reveal-load" style="--d:2">
-            <div class="portrait-wrap">
-              <img class="portrait" src="assets/portrait.jpg" alt="Portrait of Aniket Dev Roy" width="720" height="720" />
+            <span class="map-clock mono" id="map-clock">
+              <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><g stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5.2"/><line x1="12" y1="18.8" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5.2" y2="12"/><line x1="18.8" y1="12" x2="21.5" y2="12"/><line x1="5.3" y1="5.3" x2="7.2" y2="7.2"/><line x1="16.8" y1="16.8" x2="18.7" y2="18.7"/><line x1="5.3" y1="18.7" x2="7.2" y2="16.8"/><line x1="16.8" y1="7.2" x2="18.7" y2="5.3"/></g></svg>
+              <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9Z"/></svg>
+              <span id="clock-time"></span>
+            </span>
+            <div class="hero-portrait reveal-load" style="--d:2">
+              <div class="portrait-wrap">
+                <img class="portrait" src="assets/portrait.jpg" alt="Portrait of Aniket Dev Roy" width="720" height="720" />
+              </div>
+            </div>
+            <div class="hero-greeting reveal-load" style="--d:1">
+              <p class="hello">Hello,</p>
+              <h1 class="hero-name">I'm Aniket.</h1>
+              <p class="hero-role">Geo-Data Scientist &amp; GIS Analyst</p>
+              <p class="hero-stack mono">ArcGIS Pro · QGIS · Python · GeoPandas · xarray · NetCDF</p>
             </div>
           </div>
-          <div class="hero-greeting reveal-load" style="--d:1">
-            <p class="hello">Hello,</p>
-            <h1 class="hero-name">I'm Aniket.</h1>
+
+          <!-- Floating metrics dashboard: overlays the map's base edge on desktop,
+               grids neatly beneath it on smaller viewports -->
+          <div class="hero-metrics reveal-load" style="--d:3" aria-label="Key metrics across GIS projects">
+            <div class="metric" title="Average tract-by-tract validation agreement against the official USDA Food Access Atlas using an entirely open-source data pipeline (multiple state runs).">
+              <span class="metric-value"><span class="metric-num" data-count="93">93</span><span class="metric-suffix">%</span></span>
+              <span class="metric-label mono">USDA Atlas validation, open-data pipeline</span>
+              <span class="visually-hidden">Average tract-by-tract validation agreement against the official USDA Food Access Atlas using an entirely open-source data pipeline, across multiple state runs.</span>
+            </div>
+            <div class="metric" title="Of U.S. counties' ozone data integrated into a 3-county spatial correlation study (2,800 of 3,143 monitored counties).">
+              <span class="metric-value"><span class="metric-num" data-count="89">89</span><span class="metric-suffix">%</span></span>
+              <span class="metric-label mono">of U.S. counties in ozone correlation study</span>
+              <span class="visually-hidden">Of U.S. counties' ozone data integrated into a 3-county spatial correlation study: 2,800 of 3,143 monitored counties.</span>
+            </div>
+            <div class="metric" title="Of recorded seismic events passed strict QC across a 60-station Northern California network (16 of 20 events).">
+              <span class="metric-value"><span class="metric-num" data-count="80">80</span><span class="metric-suffix">%</span></span>
+              <span class="metric-label mono">of seismic events passed QC, 60-station network</span>
+              <span class="visually-hidden">Of recorded seismic events passed strict quality control across a 60-station Northern California network: 16 of 20 events.</span>
+            </div>
+            <div class="metric" title="Of global tropical cyclone records analyzed on a 4°×4° grid (1990-2024).">
+              <span class="metric-value"><span class="metric-num" data-count="35">35</span><span class="metric-suffix">yrs</span></span>
+              <span class="metric-label mono">of global cyclone records, 4°×4° grid</span>
+              <span class="visually-hidden">Of global tropical cyclone records analyzed on a 4 by 4 degree grid, 1990 to 2024.</span>
+            </div>
+            <div class="metric" title="Global ocean basins modeled and cross-validated across independent climate datasets (IBTrACS + HURSAT).">
+              <span class="metric-value"><span class="metric-num" data-count="6">6</span></span>
+              <span class="metric-label mono">ocean basins cross-validated, IBTrACS + HURSAT</span>
+              <span class="visually-hidden">Global ocean basins modeled and cross-validated across independent climate datasets: IBTrACS plus HURSAT.</span>
+            </div>
           </div>
         </div>
         <div class="hero-below">
-          <div class="hero-ctas reveal-load" style="--d:3">
-            <a class="btn btn-primary" href="#work">Climb the tree</a>
+          <div class="hero-ctas reveal-load" style="--d:4">
+            <a class="btn btn-primary" href="#work">Explore My GIS Work (Climb the Tree) →</a>
             <a class="btn btn-resume" href="assets/resume.pdf" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M13.5 3v5.5H19"/><path d="M9 13h6M9 16.5h6"/></svg>
               Résumé
@@ -170,22 +202,22 @@
                 <ol class="waypoints">
                   <li class="waypoint" style="--i:0">
                     <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2020–24</span>
+                    <span class="wp-year mono">2020-24</span>
                     <span class="wp-label">B.S. Earth Sciences, Purdue · GIS Professional Certificate</span>
                   </li>
                   <li class="waypoint" style="--i:1">
                     <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2023–24</span>
+                    <span class="wp-year mono">2023-24</span>
                     <span class="wp-label">Research Scientist, Purdue College of Science · AGU Fall Meeting 2024</span>
                   </li>
                   <li class="waypoint" style="--i:2">
                     <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2024–25</span>
+                    <span class="wp-year mono">2024-25</span>
                     <span class="wp-label">M.S. Geo-Data Sciences, Purdue</span>
                   </li>
                   <li class="waypoint" style="--i:3">
                     <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2025–</span>
+                    <span class="wp-year mono">2025-</span>
                     <span class="wp-label">GIS Analyst, Purdue University Libraries</span>
                   </li>
                   <li class="waypoint wp-next" style="--i:4">
