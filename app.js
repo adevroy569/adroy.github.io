@@ -1,17 +1,18 @@
 /* ============================================================
-   Geospatial Training Tutorials — app.js
-   Vanilla ES2015+. No dependencies.
+   Geospatial Training Tutorials, app.js
+   Vanilla ES5 compatible JavaScript. No dependencies.
 
-   1. Module filter controller (all / active / upcoming)
+   1. Pathway filter: dims excluded stages, lights the selected path
    2. Roving keyboard navigation across the filter chips
-   3. Soft page transition on internal navigation
+   3. Scroll reveal: stages assemble in sequence as you scroll
+   4. Soft page transition on internal navigation
    ============================================================ */
 
 (function () {
     'use strict';
 
-    /* Run once the DOM is parsed. `defer` on the script tag already
-       guarantees this, so we only wait if we somehow arrived early. */
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init, { once: true });
     } else {
@@ -19,35 +20,44 @@
     }
 
     function init() {
-        initModuleFilter();
+        initPathwayFilter();
+        initScrollReveal();
         initPageTransitions();
     }
 
-    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
     /* ────────────────────────────────────────────────────────
-       1. MODULE FILTER
+       1. PATHWAY FILTER
+
+       Nothing is removed from the DOM. Excluded stages drop to
+       opacity 0.15 and shrink slightly, so the track keeps its
+       full length and the selected path reads as a continuous
+       route through it.
        ──────────────────────────────────────────────────────── */
-    function initModuleFilter() {
-        var filterGroup = document.getElementById('module-filter');
-        var grid        = document.getElementById('module-grid');
+    function initPathwayFilter() {
+        var filterGroup = document.getElementById('pathway-filter');
+        var track       = document.getElementById('pathway-track');
         var countEl     = document.getElementById('filter-count');
-        var emptyEl     = document.getElementById('module-empty');
 
-        if (!filterGroup || !grid) return;
+        if (!filterGroup || !track) return;
 
-        var chips   = Array.prototype.slice.call(filterGroup.querySelectorAll('[data-filter]'));
-        var modules = Array.prototype.slice.call(grid.querySelectorAll('.module'));
+        var chips  = Array.prototype.slice.call(filterGroup.querySelectorAll('[data-filter]'));
+        var stages = Array.prototype.slice.call(track.querySelectorAll('.stage'));
 
-        var LABELS = {
-            all:      function (n) { return 'Showing all ' + n + ' modules'; },
-            active:   function (n) { return 'Showing ' + n + ' active ' + plural(n) + ', ready to open'; },
-            upcoming: function (n) { return 'Showing ' + n + ' upcoming ' + plural(n) + ', under construction'; }
+        var COPY = {
+            all: function (n) {
+                return 'Showing all ' + n + ' stages of the pathway';
+            },
+            active: function (n) {
+                return 'Showing ' + n + ' open ' + noun(n) + ', ready to start';
+            },
+            upcoming: function (n) {
+                return 'Showing ' + n + ' upcoming ' + noun(n) + ', under construction';
+            }
         };
 
-        function plural(n) { return n === 1 ? 'module' : 'modules'; }
+        function noun(n) { return n === 1 ? 'stage' : 'stages'; }
 
-        /* Event delegation: one listener serves every chip. */
+        /* One delegated listener serves every chip. */
         filterGroup.addEventListener('click', function (event) {
             var chip = event.target.closest('[data-filter]');
             if (!chip || !filterGroup.contains(chip)) return;
@@ -55,43 +65,35 @@
         });
 
         function applyFilter(state) {
-            var visible = 0;
+            var matched = 0;
 
-            modules.forEach(function (module) {
-                var matches = state === 'all' || module.dataset.status === state;
+            stages.forEach(function (stage) {
+                var isMatch = state === 'all' || stage.dataset.status === state;
+                var panel   = stage.querySelector('.stage__panel');
 
-                /* Reset the entry animation so re-shown cards replay it. */
-                module.classList.remove('is-entering');
+                stage.classList.toggle('is-dimmed', !isMatch);
 
-                if (matches) {
-                    module.classList.remove('is-hidden');
-                    module.style.setProperty('--index', String(visible));
-                    visible += 1;
-                } else {
-                    module.classList.add('is-hidden');
+                /* Only light the path when a narrowing filter is on.
+                   Under "All modules" every stage sits at rest. */
+                stage.classList.toggle('is-lit', isMatch && state !== 'all');
+
+                /* Keep dimmed panels out of the tab order and out of
+                   the accessibility tree while they are receded. */
+                if (panel) {
+                    panel.tabIndex = isMatch ? 0 : -1;
+                    panel.setAttribute('aria-hidden', isMatch ? 'false' : 'true');
                 }
+
+                if (isMatch) matched += 1;
             });
 
-            /* Force a reflow, then re-apply the stagger class in one batch. */
-            if (!prefersReducedMotion.matches) {
-                void grid.offsetWidth;
-                modules.forEach(function (module) {
-                    if (!module.classList.contains('is-hidden')) {
-                        module.classList.add('is-entering');
-                    }
-                });
-            }
-
-            /* Chip pressed states. */
             chips.forEach(function (chip) {
                 var isActive = chip.dataset.filter === state;
                 chip.classList.toggle('is-active', isActive);
                 chip.setAttribute('aria-pressed', String(isActive));
             });
 
-            /* Live region + empty state. */
-            if (countEl) countEl.textContent = LABELS[state](visible);
-            if (emptyEl) emptyEl.hidden = visible !== 0;
+            if (countEl && COPY[state]) countEl.textContent = COPY[state](matched);
         }
 
         /* 2. Roving keyboard navigation ──────────────────── */
@@ -99,7 +101,7 @@
             var index = chips.indexOf(document.activeElement);
             if (index === -1) return;
 
-            var next = null;
+            var next;
 
             switch (event.key) {
                 case 'ArrowRight':
@@ -116,14 +118,56 @@
             applyFilter(chips[next].dataset.filter);
         });
 
-        /* Honour a deep link such as index.html#upcoming. */
+        /* Deep links such as index.html#upcoming open pre filtered. */
         var hash = window.location.hash.replace('#', '');
         if (hash === 'active' || hash === 'upcoming') applyFilter(hash);
     }
 
     /* ────────────────────────────────────────────────────────
-       3. PAGE TRANSITIONS
-       Fades the page out before following an internal link.
+       3. SCROLL REVEAL
+
+       Each stage enters from its own side of the rail as it
+       comes into view, so the pathway assembles in order as the
+       reader moves down it. The entering class is stripped once
+       the animation finishes, leaving the filter states free to
+       control opacity afterwards.
+       ──────────────────────────────────────────────────────── */
+    function initScrollReveal() {
+        var stages = Array.prototype.slice.call(document.querySelectorAll('.stage'));
+        if (!stages.length) return;
+
+        function revealAll() {
+            stages.forEach(function (stage) { stage.classList.add('is-visible'); });
+        }
+
+        if (prefersReducedMotion.matches || !('IntersectionObserver' in window)) {
+            revealAll();
+            return;
+        }
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+
+                var stage = entry.target;
+                stage.classList.add('is-visible', 'is-entering');
+
+                stage.addEventListener('animationend', function () {
+                    stage.classList.remove('is-entering');
+                }, { once: true });
+
+                observer.unobserve(stage);
+            });
+        }, { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
+
+        stages.forEach(function (stage) { observer.observe(stage); });
+
+        /* Safety net: if anything blocks the observer, show everything. */
+        window.setTimeout(revealAll, 2500);
+    }
+
+    /* ────────────────────────────────────────────────────────
+       4. PAGE TRANSITIONS
        ──────────────────────────────────────────────────────── */
     function initPageTransitions() {
         var page = document.querySelector('.page');
@@ -134,23 +178,22 @@
 
             if (!link) return;
             if (link.getAttribute('aria-current') === 'page') return;
-            if (link.target === '_blank' || event.metaKey || event.ctrlKey || event.shiftKey) return;
+            if (link.target === '_blank') return;
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
             if (link.origin !== window.location.origin) return;
 
             event.preventDefault();
-            var destination = link.href;
 
-            page.style.transition = 'opacity 0.22s ' + 'cubic-bezier(0.55, 0, 1, 0.45)' +
-                                    ', transform 0.22s cubic-bezier(0.55, 0, 1, 0.45)';
+            var destination = link.href;
+            var settled = false;
+
+            page.style.transition = 'opacity 220ms ease, transform 220ms ease';
             page.style.opacity = '0';
             page.style.transform = 'translateY(-10px)';
 
-            /* Navigate when the fade finishes — with a timeout guard
-               in case transitionend never fires. */
-            var done = false;
             function go() {
-                if (done) return;
-                done = true;
+                if (settled) return;
+                settled = true;
                 window.location.href = destination;
             }
 

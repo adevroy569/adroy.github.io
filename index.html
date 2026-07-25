@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geospatial Training Tutorials — Enabling the Geospatial Turn in the Social Sciences</title>
-    <meta name="description" content="Self-paced Carpentries-based training modules covering the full lifecycle of geospatial data, from collection and curation through analysis and visualization.">
+    <title>Geospatial Training Tutorials | Enabling the Geospatial Turn in the Social Sciences</title>
+    <meta name="description" content="A six stage data lifecycle pathway teaching geospatial methods for the social sciences, from data collection through analysis, visualization, and long term curation.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
+    <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
-    <a class="skip-link" href="#modules">Skip to modules</a>
+    <a class="skip-link" href="#pathway">Skip to the pathway</a>
 
-    <!-- ─────────────  HEADER  ───────────── -->
+    <!-- =========================  MASTHEAD  ========================= -->
     <header class="masthead">
         <div class="masthead__inner">
 
-            <a class="brand" href="index.html" aria-label="Geospatial Training — home">
+            <a class="brand" href="index.html" aria-label="Geospatial Training, home">
                 <span class="brand__mark" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="10" r="3"/>
@@ -48,168 +49,168 @@
 
     <main class="page" id="main">
 
-        <!-- ─────────────  HERO  ───────────── -->
+        <!-- =========================  HERO  ========================= -->
         <section class="hero" aria-labelledby="hero-title">
 
             <div class="hero__graticule" aria-hidden="true">
-                <svg viewBox="0 0 1200 440" preserveAspectRatio="xMidYMid slice" role="presentation" focusable="false">
+                <svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice" role="presentation" focusable="false">
                     <g class="graticule__parallels">
-                        <path d="M-40 60 Q600 26 1240 60"/>
-                        <path d="M-40 140 Q600 100 1240 140"/>
-                        <path d="M-40 220 Q600 176 1240 220"/>
-                        <path d="M-40 300 Q600 252 1240 300"/>
-                        <path d="M-40 380 Q600 328 1240 380"/>
+                        <path d="M-40 70 Q600 34 1240 70"/>
+                        <path d="M-40 160 Q600 116 1240 160"/>
+                        <path d="M-40 250 Q600 200 1240 250"/>
+                        <path d="M-40 340 Q600 284 1240 340"/>
                     </g>
                     <g class="graticule__meridians">
-                        <path d="M120 -20 Q78 220 120 460"/>
-                        <path d="M300 -20 Q272 220 300 460"/>
-                        <path d="M480 -20 Q466 220 480 460"/>
-                        <path d="M660 -20 Q660 220 660 460"/>
-                        <path d="M840 -20 Q854 220 840 460"/>
-                        <path d="M1020 -20 Q1048 220 1020 460"/>
+                        <path d="M160 -20 Q116 200 160 440"/>
+                        <path d="M380 -20 Q350 200 380 440"/>
+                        <path d="M600 -20 Q600 200 600 440"/>
+                        <path d="M820 -20 Q850 200 820 440"/>
+                        <path d="M1040 -20 Q1084 200 1040 440"/>
                     </g>
                 </svg>
             </div>
 
             <div class="hero__body">
-                <p class="eyebrow">Carpentries-based curriculum</p>
+                <p class="eyebrow">Carpentries based curriculum</p>
                 <h1 class="hero__title" id="hero-title">Enabling the Geospatial&nbsp;Turn in the Social Sciences</h1>
-                <p class="hero__deck">Self-paced modules that follow geospatial data through its full lifecycle — from field collection and curation to spatial analysis and the maps you publish.</p>
+                <p class="hero__deck">Six modules that follow geospatial data through its full lifecycle, from field collection to long term preservation. Work the pathway in order, or step in at the stage you need.</p>
             </div>
 
-            <!-- ─────────────  FILTER CONTROLLER  ───────────── -->
+            <!-- =====================  FILTER CONTROLS  ===================== -->
             <div class="filter">
-                <div class="filter__controls" role="group" aria-label="Filter modules by status" id="module-filter">
+                <div class="filter__controls" role="group" aria-label="Filter the pathway by module status" id="pathway-filter">
                     <button class="filter__chip is-active" type="button" data-filter="all" aria-pressed="true">
-                        <span class="filter__dot filter__dot--all" aria-hidden="true"></span>All modules
+                        <span class="filter__dot" aria-hidden="true"></span>All modules
                     </button>
                     <button class="filter__chip" type="button" data-filter="active" aria-pressed="false">
-                        <span class="filter__dot filter__dot--active" aria-hidden="true"></span>Active
+                        <span class="filter__dot" aria-hidden="true"></span>Active
                     </button>
                     <button class="filter__chip" type="button" data-filter="upcoming" aria-pressed="false">
-                        <span class="filter__dot filter__dot--upcoming" aria-hidden="true"></span>Upcoming
+                        <span class="filter__dot" aria-hidden="true"></span>Upcoming
                     </button>
                 </div>
 
-                <p class="filter__count" id="filter-count" role="status" aria-live="polite">Showing all 6 modules</p>
+                <p class="filter__count" id="filter-count" role="status" aria-live="polite">Showing all 6 stages of the pathway</p>
             </div>
         </section>
 
-        <!-- ─────────────  MODULE GRID  ───────────── -->
-        <section class="modules" id="modules" aria-labelledby="modules-heading">
-            <h2 class="visually-hidden" id="modules-heading">Training modules</h2>
+        <!-- =========================  PATHWAY  ========================= -->
+        <section class="pathway" id="pathway" aria-labelledby="pathway-title">
 
-            <ul class="modules__grid" role="list" id="module-grid">
+            <header class="pathway__intro">
+                <p class="eyebrow eyebrow--muted">Stages 01 to 06</p>
+                <h2 class="pathway__title" id="pathway-title">The Data Lifecycle Pathway</h2>
+            </header>
 
-                <li class="module" data-status="active">
-                    <a class="module__card" href="https://spatialturn.github.io/DataCollection/" target="_blank" rel="noopener noreferrer">
-                        <header class="module__head">
-                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Acquire</p>
-                        </header>
-                        <span class="module__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        </span>
-                        <h3 class="module__title">Data Collection</h3>
-                        <p class="module__text">Methods for acquiring geospatial data — from GPS field collection and geocoding to working with public data portals and APIs.</p>
-                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+            <ol class="track" id="pathway-track" role="list">
+
+                <!-- ---------- 01 ---------- -->
+                <li class="stage" data-status="active" data-stage="1">
+                    <div class="stage__rail" aria-hidden="true">
+                        <span class="stage__node"><span class="stage__number">01</span></span>
+                    </div>
+                    <a class="stage__panel" href="https://spatialturn.github.io/DataCollection/" target="_blank" rel="noopener noreferrer">
+                        <p class="stage__label">Acquire</p>
+                        <h3 class="stage__name">Data Collection</h3>
+                        <p class="stage__text">Methods for acquiring geospatial data: GPS field collection, geocoding, and working with public data portals and APIs.</p>
+                        <span class="stage__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
                             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </span>
                     </a>
                 </li>
 
-                <li class="module" data-status="active">
-                    <a class="module__card" href="https://spatialturn.github.io/DataVisualization/" target="_blank" rel="noopener noreferrer">
-                        <header class="module__head">
-                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Communicate</p>
-                        </header>
-                        <span class="module__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17l4-8 4 4 4-6"/></svg>
-                        </span>
-                        <h3 class="module__title">Data Visualization</h3>
-                        <p class="module__text">Build maps and charts that communicate spatial patterns, from choropleths to multi-layer thematic visualizations.</p>
-                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                <!-- ---------- 02 ---------- -->
+                <li class="stage" data-status="active" data-stage="2">
+                    <div class="stage__rail" aria-hidden="true">
+                        <span class="stage__node"><span class="stage__number">02</span></span>
+                    </div>
+                    <a class="stage__panel" href="https://spatialturn.github.io/DataVisualization/" target="_blank" rel="noopener noreferrer">
+                        <p class="stage__label">Communicate</p>
+                        <h3 class="stage__name">Data Visualization</h3>
+                        <p class="stage__text">Build maps and charts that carry a spatial pattern to an audience, from choropleths to multi layer thematic figures.</p>
+                        <span class="stage__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
                             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </span>
                     </a>
                 </li>
 
-                <li class="module" data-status="active">
-                    <a class="module__card" href="https://spatialturn.github.io/DataAnalysis/" target="_blank" rel="noopener noreferrer">
-                        <header class="module__head">
-                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Interpret</p>
-                        </header>
-                        <span class="module__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6"/><path d="M11 8v6"/></svg>
-                        </span>
-                        <h3 class="module__title">Data Analysis</h3>
-                        <p class="module__text">Apply spatial statistics, overlay analysis, and geoprocessing techniques to extract meaningful insights from geospatial data.</p>
-                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                <!-- ---------- 03 ---------- -->
+                <li class="stage" data-status="active" data-stage="3">
+                    <div class="stage__rail" aria-hidden="true">
+                        <span class="stage__node"><span class="stage__number">03</span></span>
+                    </div>
+                    <a class="stage__panel" href="https://spatialturn.github.io/DataAnalysis/" target="_blank" rel="noopener noreferrer">
+                        <p class="stage__label">Interpret</p>
+                        <h3 class="stage__name">Data Analysis</h3>
+                        <p class="stage__text">Apply spatial statistics, overlay analysis, and geoprocessing techniques to pull defensible findings out of geospatial data.</p>
+                        <span class="stage__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
                             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </span>
                     </a>
                 </li>
 
-                <li class="module" data-status="active">
-                    <a class="module__card" href="https://spatialturn.github.io/CaseStudyFoodDesert/" target="_blank" rel="noopener noreferrer">
-                        <header class="module__head">
-                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Apply</p>
-                        </header>
-                        <span class="module__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 8A10 10 0 0 0 14 2.05V8h6.66z"/></svg>
-                        </span>
-                        <h3 class="module__title">Case Studies</h3>
-                        <p class="module__text">Hands-on studies applying GIS techniques to real problems, starting with food desert analysis using demographic and infrastructure data.</p>
-                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                <!-- ---------- 04 ---------- -->
+                <li class="stage" data-status="active" data-stage="4">
+                    <div class="stage__rail" aria-hidden="true">
+                        <span class="stage__node"><span class="stage__number">04</span></span>
+                    </div>
+                    <a class="stage__panel" href="https://spatialturn.github.io/CaseStudyFoodDesert/" target="_blank" rel="noopener noreferrer">
+                        <p class="stage__label">Apply</p>
+                        <h3 class="stage__name">Case Studies</h3>
+                        <p class="stage__text">Hands on studies that put the earlier stages to work, starting with food desert analysis using demographic and infrastructure data.</p>
+                        <span class="stage__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
                             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </span>
                     </a>
                 </li>
 
-                <li class="module" data-status="upcoming">
-                    <a class="module__card" href="https://spatialturn.github.io/DataManagement/" target="_blank" rel="noopener noreferrer">
-                        <header class="module__head">
-                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Organize</p>
-                            <p class="module__flag">Under construction</p>
-                        </header>
-                        <span class="module__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/><path d="M2 11h20"/></svg>
-                        </span>
-                        <h3 class="module__title">Data Management</h3>
-                        <p class="module__text">Organize, store, and maintain geospatial datasets with practical conventions for file structures, naming, and version control.</p>
-                        <span class="module__action">Preview draft<span class="visually-hidden"> (opens in a new tab)</span>
+                <!-- ---------- 05 ---------- -->
+                <li class="stage" data-status="upcoming" data-stage="5">
+                    <div class="stage__rail" aria-hidden="true">
+                        <span class="stage__node"><span class="stage__number">05</span></span>
+                    </div>
+                    <a class="stage__panel" href="https://spatialturn.github.io/DataManagement/" target="_blank" rel="noopener noreferrer">
+                        <p class="stage__label">Organize</p>
+                        <h3 class="stage__name">Data Management</h3>
+                        <p class="stage__text">Store and maintain geospatial datasets with practical conventions for file structures, naming, and version control.</p>
+                        <p class="stage__flag">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            Under construction
+                        </p>
+                        <span class="stage__action">Preview draft<span class="visually-hidden"> (opens in a new tab)</span>
                             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </span>
                     </a>
                 </li>
 
-                <li class="module" data-status="upcoming">
-                    <a class="module__card" href="https://spatialturn.github.io/datacurationmain/" target="_blank" rel="noopener noreferrer">
-                        <header class="module__head">
-                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Preserve</p>
-                            <p class="module__flag">Under construction</p>
-                        </header>
-                        <span class="module__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        </span>
-                        <h3 class="module__title">Data Curation</h3>
-                        <p class="module__text">Metadata standards, documentation, preservation strategies, and sharing practices that travel across disciplines.</p>
-                        <span class="module__action">Preview draft<span class="visually-hidden"> (opens in a new tab)</span>
+                <!-- ---------- 06 ---------- -->
+                <li class="stage" data-status="upcoming" data-stage="6">
+                    <div class="stage__rail" aria-hidden="true">
+                        <span class="stage__node"><span class="stage__number">06</span></span>
+                    </div>
+                    <a class="stage__panel" href="https://spatialturn.github.io/datacurationmain/" target="_blank" rel="noopener noreferrer">
+                        <p class="stage__label">Preserve</p>
+                        <h3 class="stage__name">Data Curation</h3>
+                        <p class="stage__text">Metadata standards, documentation, preservation strategies, and sharing practices that travel across disciplines.</p>
+                        <p class="stage__flag">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            Under construction
+                        </p>
+                        <span class="stage__action">Preview draft<span class="visually-hidden"> (opens in a new tab)</span>
                             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </span>
                     </a>
                 </li>
 
-            </ul>
-
-            <p class="modules__empty" id="module-empty" hidden>No modules match this filter. Choose <strong>All modules</strong> to see the full curriculum.</p>
+            </ol>
         </section>
 
     </main>
 
-    <!-- ─────────────  FOOTER  ───────────── -->
+    <!-- =========================  COLOPHON  ========================= -->
     <footer class="colophon">
         <div class="colophon__inner">
-            <p>&copy; 2025 Geospatial Training Tutorials · <a href="mailto:ilindsay@purdue.edu">Contact</a></p>
+            <p>&copy; 2025 Geospatial Training Tutorials &middot; <a href="mailto:ilindsay@purdue.edu">Contact</a></p>
             <p class="colophon__note">This site does not collect, store, or share any personal information.</p>
         </div>
     </footer>
