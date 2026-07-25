@@ -1,266 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark" />
-  <title>Aniket Dev Roy · Geo-Data Scientist &amp; GIS Analyst</title>
-  <meta name="description" content="Portfolio of Aniket Dev Roy, geo-data scientist and GIS analyst mapping food access, seismic hazard, and tropical cyclone intensity with ArcGIS Pro, QGIS, and Python." />
-  <meta property="og:title" content="Aniket Dev Roy · Geo-Data Scientist &amp; GIS Analyst" />
-  <meta property="og:description" content="GIS analysis in ArcGIS Pro, QGIS, and Python: food access, seismic hazard research, and tropical cyclone climatology. M.S. Geo-Data Sciences, Purdue University." />
-  <meta property="og:type" content="website" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,5 28,27 4,27' fill='none' stroke='%233FB8BF' stroke-width='3'/%3E%3Ccircle cx='16' cy='21' r='2.5' fill='%233FB8BF'/%3E%3C/svg%3E" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geospatial Training Tutorials — Enabling the Geospatial Turn in the Social Sciences</title>
+    <meta name="description" content="Self-paced Carpentries-based training modules covering the full lifecycle of geospatial data, from collection and curation through analysis and visualization.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Environmental mood layer: base color + realm glows (driven by GSAP) -->
-  <div class="env" aria-hidden="true">
-    <div class="env-base"></div>
-    <div class="env-glow env-glow--canopy"></div>
-    <div class="env-glow env-glow--roots"></div>
-  </div>
+    <a class="skip-link" href="#modules">Skip to modules</a>
 
-  <!-- World-tree SVG layer: trunk, branches, twigs, roots (built by script.js) -->
-  <div id="tree-layer" aria-hidden="true"></div>
+    <!-- ─────────────  HEADER  ───────────── -->
+    <header class="masthead">
+        <div class="masthead__inner">
 
-  <!-- ============ NAVIGATION ============ -->
-  <header class="site-nav">
-    <a class="brand" href="#top" aria-label="Back to top">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <polygon points="16,5 28,27 4,27" fill="none" stroke="currentColor" stroke-width="2.5" />
-        <circle cx="16" cy="21" r="2.5" fill="currentColor" />
-      </svg>
-      <span class="brand-name">Aniket Dev Roy</span>
-    </a>
-    <nav class="nav-links" aria-label="Primary">
-      <a href="#work" class="nav-link" data-tip="Atmospheric &amp; Cyclone Climate Trends">Canopy</a>
-      <a href="#midgard" class="nav-link" data-tip="Human Layer &amp; Food Desert Analysis">Midgard</a>
-      <a href="#roots" class="nav-link" data-tip="Seismic Hazard &amp; Geophysics Mapping">Roots</a>
-      <a href="#about" class="nav-link" data-tip="Surveyor's Log &amp; Experience">About</a>
-    </nav>
-  </header>
-
-  <main id="top">
-
-    <!-- ============ INTRO ============ -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-map-wrap glow reveal-load" style="--d:0">
-          <div class="map-frame">
-            <div class="map-fallback mono" aria-hidden="true">West Lafayette · Lafayette, Indiana</div>
-            <section id="hero-map" aria-label="Map flying into West Lafayette and Lafayette, Indiana, home of Purdue University"></section>
-            <div class="map-tint" aria-hidden="true"></div>
-            <div class="map-scrim" aria-hidden="true"></div>
-            <span class="map-clock mono" id="map-clock">
-              <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><g stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5.2"/><line x1="12" y1="18.8" x2="12" y2="21.5"/><line x1="2.5" y1="12" x2="5.2" y2="12"/><line x1="18.8" y1="12" x2="21.5" y2="12"/><line x1="5.3" y1="5.3" x2="7.2" y2="7.2"/><line x1="16.8" y1="16.8" x2="18.7" y2="18.7"/><line x1="5.3" y1="18.7" x2="7.2" y2="16.8"/><line x1="16.8" y1="7.2" x2="18.7" y2="5.3"/></g></svg>
-              <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9Z"/></svg>
-              <span id="clock-time"></span>
-            </span>
-            <div class="hero-greeting reveal-load" style="--d:1">
-              <p class="hello">Hello,</p>
-              <h1 class="hero-name">I'm Aniket.</h1>
-              <p class="hero-role">Geo-Data Scientist &amp; GIS Analyst</p>
-              <p class="hero-tag">GIS at every scale that matters: global storm grids, county food access, deep-earth hazard.</p>
-              <p class="hero-stack mono">ArcGIS Pro · QGIS · Python · Git/GitHub</p>
-            </div>
-          </div>
-
-          <!-- Floating metrics dashboard: overlays the map's base edge on desktop,
-               grids neatly beneath it on smaller viewports -->
-          <div class="hero-metrics reveal-load" style="--d:2" aria-label="Key metrics across GIS projects">
-            <div class="metric" title="Average tract-by-tract validation agreement against the official USDA Food Access Atlas using an entirely open-source data pipeline (multiple state runs).">
-              <span class="metric-value"><span class="metric-num" data-count="93">93</span><span class="metric-suffix">%</span></span>
-              <span class="metric-label mono">USDA Atlas validation, open-data pipeline</span>
-              <span class="visually-hidden">Average tract-by-tract validation agreement against the official USDA Food Access Atlas using an entirely open-source data pipeline, across multiple state runs.</span>
-            </div>
-            <div class="metric" title="Of U.S. counties' ozone data integrated into a 3-county spatial correlation study (2,800 of 3,143 monitored counties).">
-              <span class="metric-value"><span class="metric-num" data-count="89">89</span><span class="metric-suffix">%</span></span>
-              <span class="metric-label mono">of U.S. counties in ozone correlation study</span>
-              <span class="visually-hidden">Of U.S. counties' ozone data integrated into a 3-county spatial correlation study: 2,800 of 3,143 monitored counties.</span>
-            </div>
-            <div class="metric" title="Of recorded seismic events passed strict QC across a 60-station Northern California network (16 of 20 events).">
-              <span class="metric-value"><span class="metric-num" data-count="80">80</span><span class="metric-suffix">%</span></span>
-              <span class="metric-label mono">of seismic events passed QC, 60-station network</span>
-              <span class="visually-hidden">Of recorded seismic events passed strict quality control across a 60-station Northern California network: 16 of 20 events.</span>
-            </div>
-            <div class="metric" title="Of global tropical cyclone records analyzed on a 4°×4° grid (1980-2024), cross-validated against HURSAT through 2016.">
-              <span class="metric-value"><span class="metric-num" data-count="45">45</span><span class="metric-suffix">yrs</span></span>
-              <span class="metric-label mono">of global cyclone records, 4°×4° grid</span>
-              <span class="visually-hidden">Of global tropical cyclone records analyzed on a 4 by 4 degree grid, 1980 to 2024, cross-validated against satellite-derived HURSAT through 2016.</span>
-            </div>
-            <div class="metric" title="Global ocean basins modeled and cross-validated across independent climate datasets (IBTrACS + HURSAT).">
-              <span class="metric-value"><span class="metric-num" data-count="6">6</span></span>
-              <span class="metric-label mono">ocean basins cross-validated, IBTrACS + HURSAT</span>
-              <span class="visually-hidden">Global ocean basins modeled and cross-validated across independent climate datasets: IBTrACS plus HURSAT.</span>
-            </div>
-          </div>
-        </div>
-        <div class="hero-below">
-          <div class="hero-ctas reveal-load" style="--d:3">
-            <a class="btn btn-primary" href="#work">Explore My GIS Work (Climb the Tree) →</a>
-            <a class="btn btn-resume" href="assets/resume.pdf" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M13.5 3v5.5H19"/><path d="M9 13h6M9 16.5h6"/></svg>
-              Résumé
+            <a class="brand" href="index.html" aria-label="Geospatial Training — home">
+                <span class="brand__mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="10" r="3"/>
+                        <path d="M12 2a8 8 0 0 0-8 8c0 5.4 7 11.5 7.3 11.8a1 1 0 0 0 1.4 0C13 21.5 20 15.4 20 10a8 8 0 0 0-8-8z"/>
+                    </svg>
+                </span>
+                <span class="brand__name">Geospatial Training</span>
             </a>
-            <div class="social-row">
-              <a class="social" href="mailto:aniketdevroy@gmail.com" aria-label="Email" title="Email">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
-              </a>
-              <a class="social" href="https://github.com/adevroy569" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill-icon" d="M12 2.5c-5.2 0-9.5 4.3-9.5 9.6 0 4.2 2.7 7.8 6.5 9.1.5.1.7-.2.7-.5v-1.8c-2.7.6-3.3-1.2-3.3-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.1-.2-4.4-1.1-4.4-4.8 0-1 .4-1.9 1-2.6-.1-.2-.4-1.2.1-2.5 0 0 .8-.3 2.6 1a9 9 0 0 1 4.8 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.5.6.7 1 1.6 1 2.6 0 3.7-2.3 4.6-4.4 4.8.3.3.6.9.6 1.8v2.6c0 .3.2.6.7.5a9.6 9.6 0 0 0 6.5-9.1c0-5.3-4.3-9.6-9.5-9.6Z"/></svg>
-              </a>
-              <a class="social" href="https://linkedin.com/in/adr569" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="fill-icon" x="3" y="9.5" width="4" height="11"/><circle class="fill-icon" cx="5" cy="5.4" r="2.1"/><path class="fill-icon" d="M10.5 9.5h3.8v1.6c.6-1 1.8-1.9 3.6-1.9 2.9 0 4.6 1.8 4.6 5.3v6h-4v-5.5c0-1.6-.6-2.6-2-2.6-1.2 0-1.9.8-2.2 1.6-.1.3-.1.7-.1 1v5.5h-3.7z"/></svg>
-              </a>
+
+            <span class="masthead__rule" aria-hidden="true"></span>
+
+            <a class="masthead__partner" href="https://www.purdue.edu/" target="_blank" rel="noopener noreferrer">
+                <img src="PU-H-Full-Rev-RGB.svg" alt="Purdue University" width="120" height="22">
+            </a>
+
+            <nav class="nav" aria-label="Primary">
+                <ul class="nav__list" role="list">
+                    <li><a class="nav__link is-current" href="index.html" aria-current="page">Modules</a></li>
+                    <li><a class="nav__link" href="workshop2026.html">Workshop 2026</a></li>
+                </ul>
+            </nav>
+
+        </div>
+    </header>
+
+    <main class="page" id="main">
+
+        <!-- ─────────────  HERO  ───────────── -->
+        <section class="hero" aria-labelledby="hero-title">
+
+            <div class="hero__graticule" aria-hidden="true">
+                <svg viewBox="0 0 1200 440" preserveAspectRatio="xMidYMid slice" role="presentation" focusable="false">
+                    <g class="graticule__parallels">
+                        <path d="M-40 60 Q600 26 1240 60"/>
+                        <path d="M-40 140 Q600 100 1240 140"/>
+                        <path d="M-40 220 Q600 176 1240 220"/>
+                        <path d="M-40 300 Q600 252 1240 300"/>
+                        <path d="M-40 380 Q600 328 1240 380"/>
+                    </g>
+                    <g class="graticule__meridians">
+                        <path d="M120 -20 Q78 220 120 460"/>
+                        <path d="M300 -20 Q272 220 300 460"/>
+                        <path d="M480 -20 Q466 220 480 460"/>
+                        <path d="M660 -20 Q660 220 660 460"/>
+                        <path d="M840 -20 Q854 220 840 460"/>
+                        <path d="M1020 -20 Q1048 220 1020 460"/>
+                    </g>
+                </svg>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- ============ THE WORLD TREE ============ -->
-    <div class="world-tree" id="world-tree">
-
-      <!-- Realm I: Canopy — upper air -->
-      <section class="realm" id="work" data-realm="canopy">
-        <div class="realm-inner">
-          <header class="section-head reveal">
-            <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> Realm I · Canopy · Global scale</p>
-            <h2>Upper air</h2>
-            <p class="realm-sub">The crown of the tree: storm tops, satellite records, and the climate signal read from above.</p>
-          </header>
-          <div class="realm-stats reveal" aria-label="Canopy realm metrics">
-            <div class="rstat"><span class="rstat-v">45<small>yrs</small></span><span class="rstat-l mono">of climate records · 1980-2024</span></div>
-            <div class="rstat"><span class="rstat-v">6</span><span class="rstat-l mono">ocean basins modeled</span></div>
-            <div class="rstat"><span class="rstat-v">4°×4°</span><span class="rstat-l mono">global grid resolution</span></div>
-            <div class="rstat"><span class="rstat-v">12</span><span class="rstat-l mono">counties · 4 climate types</span></div>
-          </div>
-          <div class="node-list" id="realm-canopy">
-            <!-- Canopy nodes rendered by script.js -->
-          </div>
-        </div>
-      </section>
-
-      <!-- Realm II: Midgard — the human layer -->
-      <section class="realm" id="midgard" data-realm="midgard">
-        <div class="realm-inner">
-          <header class="section-head reveal">
-            <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> Realm II · Midgard · County scale</p>
-            <h2>The human layer</h2>
-            <p class="realm-sub">Ground level, where people live: food access mapped and validated in ArcGIS Pro, the air they breathe, and the skills to map both.</p>
-          </header>
-          <div class="realm-stats reveal" aria-label="Midgard realm metrics">
-            <div class="rstat"><span class="rstat-v">~93<small>%</small></span><span class="rstat-l mono">USDA Atlas validation</span></div>
-            <div class="rstat"><span class="rstat-v">50</span><span class="rstat-l mono">states · one parameterized pipeline</span></div>
-            <div class="rstat"><span class="rstat-v">2,800<small>/3,143</small></span><span class="rstat-l mono">counties' ozone data integrated</span></div>
-            <div class="rstat"><span class="rstat-v">30</span><span class="rstat-l mono">GIS professionals trained live</span></div>
-          </div>
-          <div class="node-list" id="realm-midgard">
-            <!-- Midgard nodes rendered by script.js -->
-          </div>
-        </div>
-      </section>
-
-      <!-- Realm III: Roots — deep earth -->
-      <section class="realm" id="roots" data-realm="roots">
-        <div class="realm-inner">
-          <header class="section-head reveal">
-            <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> Realm III · Roots · Regional scale</p>
-            <h2>Deep earth</h2>
-            <p class="realm-sub">Where the roots drink: shear-wave velocity, soft sediment, and what the ground will do when it shakes.</p>
-          </header>
-          <div class="realm-stats reveal" aria-label="Roots realm metrics">
-            <div class="rstat"><span class="rstat-v">60</span><span class="rstat-l mono">seismic stations analyzed</span></div>
-            <div class="rstat"><span class="rstat-v">16<small>/20</small></span><span class="rstat-l mono">events passing strict QC</span></div>
-            <div class="rstat"><span class="rstat-v">1.8<small>km/s</small></span><span class="rstat-l mono">lowest shear-wave velocity</span></div>
-            <div class="rstat"><span class="rstat-v">NSF</span><span class="rstat-l mono">funded research · AGU 2024</span></div>
-          </div>
-          <div class="node-list" id="realm-roots">
-            <!-- Root nodes rendered by script.js -->
-          </div>
-
-          <!-- Taproot: About, at the absolute base of the tree -->
-          <article class="tree-node node-center about-node glow reveal" id="about" data-side="center">
-            <i class="node-corner c-tl" aria-hidden="true"></i>
-            <i class="node-corner c-br" aria-hidden="true"></i>
-            <span class="node-tag mono">Taproot · About</span>
-            <span class="node-port" aria-hidden="true"></span>
-            <div class="node-body">
-              <header class="section-head">
-                <p class="eyebrow mono"><span class="marker" aria-hidden="true">▲</span> About</p>
-                <h2>Surveyor's log</h2>
-              </header>
-              <p class="about-toolkit mono">ArcGIS Pro · QGIS · ArcGIS Online &amp; StoryMaps · Python (GeoPandas, xarray, SciPy, Cartopy) · MATLAB · Linux / Bash · Git/GitHub · Census API · NetCDF</p>
-              <div class="about-lead">
-                <p class="about-text">
-                  Graduate Assistant in GIS at Purdue University Libraries, with an
-                  M.S. in Geo-Data Sciences and a GIS Professional Certificate from
-                  Purdue. I turn public earth and demographic data, from census
-                  records to satellites to seismometers, into reproducible maps and
-                  analyses people can act on: food access, seismic hazard, and
-                  hurricane climatology. Day to day that means Python and arcpy
-                  pipelines, network-based accessibility analysis in QGIS
-                  (shortest-path routing and service areas on OpenStreetMap roads),
-                  and ArcGIS Pro as the independent check on every map before it
-                  ships. The open GIS curriculum I author for Purdue's NSF
-                  cybertraining project is published for anyone to use.
-                </p>
-              </div>
-              <div class="traverse reveal">
-                <div class="traverse-line" aria-hidden="true"></div>
-                <ol class="waypoints">
-                  <li class="waypoint" style="--i:0">
-                    <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2020-24</span>
-                    <span class="wp-label">B.S. Earth Sciences, Purdue</span>
-                  </li>
-                  <li class="waypoint" style="--i:1">
-                    <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2023-24</span>
-                    <span class="wp-label">Seismic Researcher, Purdue College of Science · AGU Fall Meeting 2024</span>
-                  </li>
-                  <li class="waypoint" style="--i:2">
-                    <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2024-25</span>
-                    <span class="wp-label">M.S. Geo-Data Sciences · GIS Professional Certificate, Purdue</span>
-                  </li>
-                  <li class="waypoint" style="--i:3">
-                    <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">2025-</span>
-                    <span class="wp-label">Graduate Assistant in GIS, Purdue University Libraries</span>
-                  </li>
-                  <li class="waypoint wp-next" style="--i:4">
-                    <span class="wp-mark" aria-hidden="true"></span>
-                    <span class="wp-year mono">Next</span>
-                    <span class="wp-label">GIS Analyst · GIS Specialist · GIS Consultant · Environmental Scientist / Consultant · Engineering Consultant</span>
-                  </li>
-                </ol>
-              </div>
+            <div class="hero__body">
+                <p class="eyebrow">Carpentries-based curriculum</p>
+                <h1 class="hero__title" id="hero-title">Enabling the Geospatial&nbsp;Turn in the Social Sciences</h1>
+                <p class="hero__deck">Self-paced modules that follow geospatial data through its full lifecycle — from field collection and curation to spatial analysis and the maps you publish.</p>
             </div>
-          </article>
 
+            <!-- ─────────────  FILTER CONTROLLER  ───────────── -->
+            <div class="filter">
+                <div class="filter__controls" role="group" aria-label="Filter modules by status" id="module-filter">
+                    <button class="filter__chip is-active" type="button" data-filter="all" aria-pressed="true">
+                        <span class="filter__dot filter__dot--all" aria-hidden="true"></span>All modules
+                    </button>
+                    <button class="filter__chip" type="button" data-filter="active" aria-pressed="false">
+                        <span class="filter__dot filter__dot--active" aria-hidden="true"></span>Active
+                    </button>
+                    <button class="filter__chip" type="button" data-filter="upcoming" aria-pressed="false">
+                        <span class="filter__dot filter__dot--upcoming" aria-hidden="true"></span>Upcoming
+                    </button>
+                </div>
+
+                <p class="filter__count" id="filter-count" role="status" aria-live="polite">Showing all 6 modules</p>
+            </div>
+        </section>
+
+        <!-- ─────────────  MODULE GRID  ───────────── -->
+        <section class="modules" id="modules" aria-labelledby="modules-heading">
+            <h2 class="visually-hidden" id="modules-heading">Training modules</h2>
+
+            <ul class="modules__grid" role="list" id="module-grid">
+
+                <li class="module" data-status="active">
+                    <a class="module__card" href="https://spatialturn.github.io/DataCollection/" target="_blank" rel="noopener noreferrer">
+                        <header class="module__head">
+                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Acquire</p>
+                        </header>
+                        <span class="module__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </span>
+                        <h3 class="module__title">Data Collection</h3>
+                        <p class="module__text">Methods for acquiring geospatial data — from GPS field collection and geocoding to working with public data portals and APIs.</p>
+                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li class="module" data-status="active">
+                    <a class="module__card" href="https://spatialturn.github.io/DataVisualization/" target="_blank" rel="noopener noreferrer">
+                        <header class="module__head">
+                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Communicate</p>
+                        </header>
+                        <span class="module__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17l4-8 4 4 4-6"/></svg>
+                        </span>
+                        <h3 class="module__title">Data Visualization</h3>
+                        <p class="module__text">Build maps and charts that communicate spatial patterns, from choropleths to multi-layer thematic visualizations.</p>
+                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li class="module" data-status="active">
+                    <a class="module__card" href="https://spatialturn.github.io/DataAnalysis/" target="_blank" rel="noopener noreferrer">
+                        <header class="module__head">
+                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Interpret</p>
+                        </header>
+                        <span class="module__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6"/><path d="M11 8v6"/></svg>
+                        </span>
+                        <h3 class="module__title">Data Analysis</h3>
+                        <p class="module__text">Apply spatial statistics, overlay analysis, and geoprocessing techniques to extract meaningful insights from geospatial data.</p>
+                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li class="module" data-status="active">
+                    <a class="module__card" href="https://spatialturn.github.io/CaseStudyFoodDesert/" target="_blank" rel="noopener noreferrer">
+                        <header class="module__head">
+                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Apply</p>
+                        </header>
+                        <span class="module__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 8A10 10 0 0 0 14 2.05V8h6.66z"/></svg>
+                        </span>
+                        <h3 class="module__title">Case Studies</h3>
+                        <p class="module__text">Hands-on studies applying GIS techniques to real problems, starting with food desert analysis using demographic and infrastructure data.</p>
+                        <span class="module__action">Open module<span class="visually-hidden"> (opens in a new tab)</span>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li class="module" data-status="upcoming">
+                    <a class="module__card" href="https://spatialturn.github.io/DataManagement/" target="_blank" rel="noopener noreferrer">
+                        <header class="module__head">
+                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Organize</p>
+                            <p class="module__flag">Under construction</p>
+                        </header>
+                        <span class="module__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/><path d="M2 11h20"/></svg>
+                        </span>
+                        <h3 class="module__title">Data Management</h3>
+                        <p class="module__text">Organize, store, and maintain geospatial datasets with practical conventions for file structures, naming, and version control.</p>
+                        <span class="module__action">Preview draft<span class="visually-hidden"> (opens in a new tab)</span>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li class="module" data-status="upcoming">
+                    <a class="module__card" href="https://spatialturn.github.io/datacurationmain/" target="_blank" rel="noopener noreferrer">
+                        <header class="module__head">
+                            <p class="module__stage"><span class="visually-hidden">Lifecycle stage: </span>Preserve</p>
+                            <p class="module__flag">Under construction</p>
+                        </header>
+                        <span class="module__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </span>
+                        <h3 class="module__title">Data Curation</h3>
+                        <p class="module__text">Metadata standards, documentation, preservation strategies, and sharing practices that travel across disciplines.</p>
+                        <span class="module__action">Preview draft<span class="visually-hidden"> (opens in a new tab)</span>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </span>
+                    </a>
+                </li>
+
+            </ul>
+
+            <p class="modules__empty" id="module-empty" hidden>No modules match this filter. Choose <strong>All modules</strong> to see the full curriculum.</p>
+        </section>
+
+    </main>
+
+    <!-- ─────────────  FOOTER  ───────────── -->
+    <footer class="colophon">
+        <div class="colophon__inner">
+            <p>&copy; 2025 Geospatial Training Tutorials · <a href="mailto:ilindsay@purdue.edu">Contact</a></p>
+            <p class="colophon__note">This site does not collect, store, or share any personal information.</p>
         </div>
-      </section>
+    </footer>
 
-    </div>
-  </main>
-
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <p class="mono">▲ Aniket Dev Roy · <span id="footer-year"></span></p>
-      <p class="mono"><a href="mailto:aniketdevroy@gmail.com">aniketdevroy@gmail.com</a></p>
-      <p class="mono">West Lafayette, Indiana</p>
-    </div>
-  </footer>
-
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="script.js"></script>
+    <script src="app.js" defer></script>
 </body>
 </html>
