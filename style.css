@@ -6,7 +6,7 @@
    2.  Reset and base
    3.  Utilities
    4.  Masthead and navigation
-   5.  Hero and graticule
+   5.  Hero and relief field
    6.  Filter controls
    7.  Pathway track
    8.  Stage nodes
@@ -231,7 +231,7 @@ a { color: inherit; }
     box-shadow: inset 0 0 0 1px var(--accent-edge);
 }
 
-/* ── 5. HERO AND GRATICULE ───────────────────────────────── */
+/* ── 5. HERO AND RELIEF FIELD ──────────────────────── */
 .page { flex: 1 0 auto; }
 
 .hero {
@@ -242,26 +242,62 @@ a { color: inherit; }
     isolation: isolate;
 }
 
-.hero__graticule {
+/* The contour field bleeds past the shell and fades toward the type,
+   so the relief is strongest on the open right side of the hero. */
+.relief {
     position: absolute;
-    inset: 0;
+    top: -68px;
+    right: calc(50% - 50vw);
+    left: calc(50% - 50vw);
+    height: calc(100% + 68px);
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    -webkit-mask-image: radial-gradient(115% 88% at 20% 24%, #000 0%, rgba(0,0,0,0.5) 45%, transparent 76%);
-            mask-image: radial-gradient(115% 88% at 20% 24%, #000 0%, rgba(0,0,0,0.5) 45%, transparent 76%);
+    -webkit-mask-image:
+        linear-gradient(100deg, transparent 4%, rgba(0,0,0,0.35) 32%, #000 68%),
+        linear-gradient(to bottom, #000 55%, transparent 96%);
+            mask-image:
+        linear-gradient(100deg, transparent 4%, rgba(0,0,0,0.35) 32%, #000 68%),
+        linear-gradient(to bottom, #000 55%, transparent 96%);
+    -webkit-mask-composite: source-in;
+            mask-composite: intersect;
 }
-.hero__graticule svg { width: 100%; height: 100%; }
-.hero__graticule path {
+.relief__field { width: 100%; height: 100%; }
+
+/* Slow drift, roughly one full cycle every two minutes. */
+.relief__drift {
+    transform-origin: 62% 45%;
+    animation: relief-drift 120s ease-in-out infinite alternate;
+}
+@keyframes relief-drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(-26px, 14px, 0) scale(1.045); }
+}
+
+.iso {
     fill: none;
     stroke: var(--accent);
     stroke-width: 1;
+    stroke-opacity: 0.17;
     vector-effect: non-scaling-stroke;
 }
-.graticule__parallels path { opacity: 0.15; }
-.graticule__meridians path { opacity: 0.09; }
+/* Index contours carry the weight, as they would on a printed sheet. */
+.iso--index {
+    stroke-width: 1.4;
+    stroke-opacity: 0.42;
+}
 
 .hero__body { max-width: 46rem; }
+
+.eyebrow__tick {
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    margin-right: 0.6rem;
+    vertical-align: middle;
+    background: var(--accent);
+    opacity: 0.7;
+}
 
 .hero__title {
     margin: 1.1rem 0 1rem;
@@ -373,7 +409,44 @@ a { color: inherit; }
     color: var(--text-primary);
 }
 
+.track-wrap { position: relative; }
 .track { list-style: none; }
+
+/* The route trace. A bright overlay on the rail whose length follows
+   scroll position, with a lit head marking where the reader is. */
+.trace {
+    position: absolute;
+    left: 50%;
+    z-index: 1;
+    width: 2px;
+    transform: translateX(-50%);
+    top: var(--trace-top, 0px);
+    height: var(--trace-len, 0px);
+    pointer-events: none;
+}
+.trace__fill {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: calc(var(--progress, 0) * 100%);
+    background: linear-gradient(to bottom,
+                rgba(34, 197, 94, 0.05),
+                var(--accent) 42%,
+                var(--accent-bright));
+    box-shadow: 0 0 16px 1px rgba(34, 197, 94, 0.35);
+    transition: opacity var(--t-state) var(--ease);
+}
+.trace__head {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--accent-bright);
+    transform: translate(-50%, 50%);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14), 0 0 20px 4px var(--accent-glow);
+}
+.trace[data-progress="0"] .trace__fill { opacity: 0; }
 
 /* Each stage is its own three column band: panel, rail, panel.
    No row gap, so the rail segments meet and read as one line. */
@@ -422,7 +495,7 @@ a { color: inherit; }
 /* ── 8. STAGE NODES ──────────────────────────────────────── */
 .stage__node {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     width: var(--node);
     height: var(--node);
     display: grid;
@@ -464,6 +537,19 @@ a { color: inherit; }
 .stage[data-status="upcoming"]:has(.stage__panel:focus-visible) .stage__node {
     opacity: 0.85;
     box-shadow: 0 0 0 6px var(--bg-base), 0 0 26px -6px rgba(224, 180, 88, 0.3);
+}
+
+/* The node the reader is level with, marked like a position fix. */
+.stage.is-current .stage__node {
+    transform: scale(1.06);
+    border-color: var(--accent-bright);
+    box-shadow: 0 0 0 6px var(--bg-base), 0 0 0 7px rgba(34, 197, 94, 0.22), 0 0 32px -2px var(--accent-glow);
+}
+.stage.is-current .stage__number { color: var(--accent-bright); }
+.stage[data-status="upcoming"].is-current .stage__node {
+    opacity: 0.8;
+    border-color: var(--signal-edge);
+    box-shadow: 0 0 0 6px var(--bg-base), 0 0 0 7px rgba(224, 180, 88, 0.18);
 }
 
 /* ── 9. STAGE PANELS ─────────────────────────────────────── */
@@ -543,6 +629,27 @@ a { color: inherit; }
     line-height: 1.62;
     color: var(--text-secondary);
 }
+
+.stage__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.9rem;
+    list-style: none;
+}
+.stage__meta li {
+    padding: 0.16rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--inset);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: border-color var(--t) var(--ease), color var(--t) var(--ease);
+}
+.stage__panel:hover .stage__meta li { border-color: var(--accent-edge); color: var(--text-secondary); }
 
 .stage__flag {
     display: inline-flex;
@@ -671,6 +778,8 @@ a { color: inherit; }
     .stage:nth-child(odd)  .stage__panel,
     .stage:nth-child(even) .stage__panel { grid-column: 2; }
 
+    .trace { left: calc(var(--rail) / 2); }
+
     .stage:nth-child(odd)  .stage__panel::after,
     .stage:nth-child(even) .stage__panel::after {
         left: auto;
@@ -714,4 +823,5 @@ a { color: inherit; }
     }
     .stage__panel:hover { transform: none; }
     .js .stage { visibility: visible; }
+    .relief__drift { animation: none; }
 }

@@ -5,7 +5,8 @@
    1. Pathway filter: dims excluded stages, lights the selected path
    2. Roving keyboard navigation across the filter chips
    3. Scroll reveal: stages assemble in sequence as you scroll
-   4. Soft page transition on internal navigation
+   4. Route trace: the lit line and position fix that follow scroll
+   5. Soft page transition on internal navigation
    ============================================================ */
 
 (function () {
@@ -22,6 +23,7 @@
     function init() {
         initPathwayFilter();
         initScrollReveal();
+        initRouteTrace();
         initPageTransitions();
     }
 
@@ -167,7 +169,102 @@
     }
 
     /* ────────────────────────────────────────────────────────
-       4. PAGE TRANSITIONS
+       4. ROUTE TRACE
+
+       Draws a lit line along the rail from the first node down to
+       wherever the reader has reached, and marks the nearest node
+       as the current position fix. Geometry is measured from the
+       nodes themselves, so it stays correct at any breakpoint.
+       ──────────────────────────────────────────────────────── */
+    function initRouteTrace() {
+        var wrap  = document.querySelector('.track-wrap');
+        var trace = document.getElementById('trace');
+        if (!wrap || !trace) return;
+
+        var stages = Array.prototype.slice.call(wrap.querySelectorAll('.stage'));
+        var nodes  = stages.map(function (stage) { return stage.querySelector('.stage__node'); });
+        if (nodes.length < 2 || nodes.indexOf(null) !== -1) return;
+
+        var centers = [];   // node centres, relative to the wrapper
+        var start   = 0;
+        var span    = 0;
+        var ticking = false;
+        var current = -1;
+
+        function measure() {
+            var wrapTop = wrap.getBoundingClientRect().top;
+
+            centers = nodes.map(function (node) {
+                var rect = node.getBoundingClientRect();
+                return rect.top - wrapTop + rect.height / 2;
+            });
+
+            start = centers[0];
+            span  = centers[centers.length - 1] - start;
+
+            trace.style.setProperty('--trace-top', start + 'px');
+            trace.style.setProperty('--trace-len', span + 'px');
+        }
+
+        function update() {
+            ticking = false;
+            if (span <= 0) return;
+
+            var wrapTop = wrap.getBoundingClientRect().top;
+            var anchor  = window.innerHeight * 0.55;
+
+            var progress = (anchor - (wrapTop + start)) / span;
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+
+            trace.style.setProperty('--progress', progress.toFixed(4));
+            trace.setAttribute('data-progress', progress === 0 ? '0' : '1');
+
+            /* Nearest node to the reading line becomes the position fix. */
+            var nearest = 0;
+            var best = Infinity;
+
+            for (var i = 0; i < centers.length; i++) {
+                var distance = Math.abs((wrapTop + centers[i]) - anchor);
+                if (distance < best) { best = distance; nearest = i; }
+            }
+
+            /* Only claim a fix while the pathway is actually on screen. */
+            if (best > window.innerHeight * 0.6) nearest = -1;
+
+            if (nearest !== current) {
+                if (current > -1) stages[current].classList.remove('is-current');
+                if (nearest > -1) stages[nearest].classList.add('is-current');
+                current = nearest;
+            }
+        }
+
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            window.requestAnimationFrame(update);
+        }
+
+        function onResize() {
+            measure();
+            onScroll();
+        }
+
+        measure();
+        update();
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize);
+
+        /* Late webfont metrics can shift the nodes, so measure again. */
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(onResize);
+        }
+        window.addEventListener('load', onResize);
+    }
+
+    /* ────────────────────────────────────────────────────────
+       5. PAGE TRANSITIONS
        ──────────────────────────────────────────────────────── */
     function initPageTransitions() {
         var page = document.querySelector('.page');
