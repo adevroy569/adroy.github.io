@@ -1,91 +1,71 @@
 /* ============================================================
    Geospatial Training Tutorials, style.css
-   Redesign: two training routes (QGIS, Python) drawn as a
-   converging survey network over shared common ground.
-
-   Layout model
-   ------------
-   .network            the whole map area (position: relative)
-     svg.wires         trunks + branches, drawn by app.js (desktop)
-     .routes           two columns, one per route
-       .route          column: .hub bubble on top, tiles below
-         .route__kids  level 1 tiles, left gutter reserved for trunk
-     .foundation       shared tiles, both trunks converge here
-
-   Inside a column, deeper levels use CSS rails (dashed left
-   border + a tick per tile), so only the top level geometry
-   needs the SVG layer.
+   A dark cartographic theme: graticule backdrop, two accent
+   inks (QGIS green, Python blue), gold for shared ground.
+   Graph mode styles the node map; list mode styles the same
+   content as a vertical disclosure tree on narrow screens.
    ============================================================ */
 
 :root {
-    /* Surfaces */
-    --bg-base:        #0B0F19;
-    --bg-raise:       #0E1420;
-    --canvas:         #16202F;
-    --canvas-lift:    #1B2739;
-    --inset:          #101827;
+    --bg:        #0B0F19;
+    --bg-2:      #0E1422;
+    --panel:     #111A2B;
+    --panel-2:   #16202F;
+    --line:      #1E2A3E;
+    --line-2:    #2A3A55;
 
-    /* Lines */
-    --line:           #2A3852;
-    --line-soft:      #1D2739;
+    --ink:       #E8EDF6;
+    --ink-2:     #A6B4CB;
+    --ink-3:     #6E7D96;
 
-    /* Text */
-    --text-primary:   #E9EEF6;
-    --text-secondary: #A6B4C8;
-    --text-muted:     #6E8098;
+    --qgis:        #2FC96E;
+    --qgis-soft:   rgba(47, 201, 110, 0.13);
+    --qgis-edge:   rgba(47, 201, 110, 0.55);
 
-    /* Route accents */
-    --qgis:           #2FC96E;
-    --qgis-soft:      rgba(47, 201, 110, 0.12);
-    --qgis-edge:      rgba(47, 201, 110, 0.45);
-    --python:         #62A8F0;
-    --python-soft:    rgba(98, 168, 240, 0.12);
-    --python-edge:    rgba(98, 168, 240, 0.45);
-    --shared:         #E0B458;
-    --shared-soft:    rgba(224, 180, 88, 0.10);
-    --shared-edge:    rgba(224, 180, 88, 0.45);
+    --python:      #62A8F0;
+    --python-soft: rgba(98, 168, 240, 0.13);
+    --python-edge: rgba(98, 168, 240, 0.55);
 
-    /* Type */
-    --font-display:   'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
-    --font-body:      'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-    --font-mono:      'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --shared:      #E0B458;
+    --shared-soft: rgba(224, 180, 88, 0.12);
+    --shared-edge: rgba(224, 180, 88, 0.55);
 
-    --step--1:        0.8125rem;
-    --step-0:         0.9375rem;
-    --step-1:         1.0625rem;
-    --step-2:         clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
-    --step-3:         clamp(2rem, 1.4rem + 2.7vw, 3.2rem);
+    --font-display: "Space Grotesk", "Avenir Next", sans-serif;
+    --font-body:    "IBM Plex Sans", "Segoe UI", sans-serif;
+    --font-mono:    "IBM Plex Mono", "SF Mono", monospace;
 
-    /* Rhythm */
-    --shell:          1160px;
-    --gutter:         clamp(1.25rem, 4vw, 2.5rem);
-    --trunk-gutter:   48px;   /* space reserved for the trunk line */
-    --radius:         14px;
-    --radius-sm:      10px;
+    --shell: 1160px;
+    --shell-wide: 1560px;
+    --gutter: clamp(1.1rem, 3.5vw, 2.4rem);
 
-    --t:              200ms;
-    --t-open:         340ms;
-    --ease:           ease;
-    --ease-out:       cubic-bezier(0.22, 1, 0.36, 1);
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 20px;
+
+    --spring: cubic-bezier(0.3, 1.3, 0.45, 1);
+    --easeout: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ─────────────────────────  RESET  ───────────────────────── */
+/* ─────────────────────── base ─────────────────────── */
 
-*, *::before, *::after { box-sizing: border-box; }
+* { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
 
 body {
     margin: 0;
-    background: var(--bg-base);
-    color: var(--text-primary);
+    background:
+        radial-gradient(1100px 500px at 18% -5%, rgba(47, 201, 110, 0.05), transparent 60%),
+        radial-gradient(1100px 520px at 85% -5%, rgba(98, 168, 240, 0.06), transparent 60%),
+        var(--bg);
+    color: var(--ink);
     font-family: var(--font-body);
-    font-size: var(--step-0);
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
 }
 
-img, svg { display: block; max-width: 100%; }
+img { display: block; max-width: 100%; }
 
 a { color: inherit; }
 
@@ -96,631 +76,714 @@ button {
     border: 0;
     padding: 0;
     cursor: pointer;
-    text-align: left;
 }
 
-ul[role="list"], ol[role="list"] { list-style: none; margin: 0; padding: 0; }
+:focus-visible {
+    outline: 2px solid var(--python);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
 
 .visually-hidden {
     position: absolute !important;
     width: 1px; height: 1px;
-    margin: -1px; padding: 0;
-    overflow: hidden;
+    margin: -1px; padding: 0; border: 0;
     clip: rect(0 0 0 0);
+    overflow: hidden;
     white-space: nowrap;
-    border: 0;
 }
 
 .skip-link {
     position: absolute;
     left: 1rem; top: -3rem;
-    z-index: 50;
-    padding: 0.5rem 0.9rem;
-    background: var(--canvas-lift);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
+    z-index: 100;
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-sm);
+    padding: 0.55rem 0.9rem;
     text-decoration: none;
-    transition: top var(--t) var(--ease);
+    transition: top 0.2s ease;
 }
 .skip-link:focus { top: 1rem; }
 
-:focus-visible {
-    outline: 2px solid var(--text-primary);
-    outline-offset: 2px;
-    border-radius: 6px;
-}
-
-/* ─────────────────────────  MASTHEAD  ───────────────────────── */
+/* ─────────────────────── masthead ─────────────────────── */
 
 .masthead {
     position: sticky;
     top: 0;
-    z-index: 20;
-    background: rgba(11, 15, 25, 0.86);
+    z-index: 50;
+    background: rgba(11, 15, 25, 0.82);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line-soft);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
 }
 
 .masthead__inner {
     max-width: var(--shell);
     margin: 0 auto;
-    padding: 0.8rem var(--gutter);
+    padding: 0.7rem var(--gutter);
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
 .brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.55rem;
     text-decoration: none;
 }
 
 .brand__mark {
-    width: 26px; height: 26px;
+    display: inline-flex;
+    width: 30px; height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
     color: var(--qgis);
+    background: var(--qgis-soft);
+    border: 1px solid rgba(47, 201, 110, 0.3);
 }
-.brand__mark svg { width: 100%; height: 100%; }
+.brand__mark svg { width: 17px; height: 17px; }
 
 .brand__name {
     font-family: var(--font-display);
     font-weight: 600;
+    font-size: 1rem;
     letter-spacing: 0.01em;
-    white-space: nowrap;
 }
 
 .masthead__rule {
     width: 1px;
     height: 22px;
-    background: var(--line);
+    background: var(--line-2);
 }
 
+.masthead__partner { opacity: 0.85; transition: opacity 0.2s ease; }
+.masthead__partner:hover { opacity: 1; }
 .masthead__partner img { height: 20px; width: auto; }
 
 .nav { margin-left: auto; }
 
-.nav__list { display: flex; gap: 0.35rem; }
+.nav__list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    gap: 0.35rem;
+}
 
 .nav__link {
     display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--text-secondary);
+    padding: 0.42rem 0.85rem;
+    border-radius: 999px;
     text-decoration: none;
-    transition: color var(--t) var(--ease), background var(--t) var(--ease);
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    border: 1px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
-.nav__link:hover { color: var(--text-primary); background: var(--canvas); }
-.nav__link.is-current { color: var(--text-primary); background: var(--canvas); }
+.nav__link:hover { color: var(--ink); border-color: var(--line-2); }
+.nav__link.is-current {
+    color: var(--ink);
+    background: var(--panel-2);
+    border-color: var(--line-2);
+}
 
-/* ─────────────────────────  HERO  ───────────────────────── */
+/* ─────────────────────── hero ─────────────────────── */
 
 .hero {
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid var(--line-soft);
-    /* faint graticule */
-    background-image:
-        radial-gradient(ellipse 90% 70% at 50% -20%, rgba(47, 201, 110, 0.07), transparent 60%),
-        radial-gradient(ellipse 70% 60% at 85% 10%, rgba(98, 168, 240, 0.06), transparent 55%),
-        repeating-linear-gradient(to right, transparent 0 119px, rgba(42, 56, 82, 0.28) 119px 120px),
-        repeating-linear-gradient(to bottom, transparent 0 119px, rgba(42, 56, 82, 0.28) 119px 120px);
+    border-bottom: 1px solid var(--line);
+    background:
+        repeating-linear-gradient(0deg, rgba(42, 58, 85, 0.16) 0 1px, transparent 1px 88px),
+        repeating-linear-gradient(90deg, rgba(42, 58, 85, 0.16) 0 1px, transparent 1px 88px),
+        radial-gradient(700px 320px at 50% 115%, rgba(224, 180, 88, 0.05), transparent 70%),
+        var(--bg-2);
 }
 
 .hero__inner {
     max-width: var(--shell);
     margin: 0 auto;
-    padding: clamp(3rem, 7vw, 5.5rem) var(--gutter) clamp(2.25rem, 5vw, 3.5rem);
+    padding: clamp(2.6rem, 6vw, 4.4rem) var(--gutter) clamp(2rem, 5vw, 3.2rem);
 }
 
 .hero__eyebrow {
+    margin: 0 0 1rem;
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    margin: 0 0 1.1rem;
     font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
 }
 
 .hero__eyebrow-sep {
-    width: 2.25rem;
+    width: 34px;
     height: 1px;
-    background: linear-gradient(to right, var(--qgis), var(--python));
-    opacity: 0.8;
+    background: linear-gradient(90deg, var(--qgis), var(--python));
+    opacity: 0.7;
 }
 
 .hero__title {
     margin: 0 0 1rem;
-    max-width: 17ch;
     font-family: var(--font-display);
-    font-size: var(--step-3);
     font-weight: 700;
-    line-height: 1.08;
+    font-size: clamp(1.9rem, 4.6vw, 3.15rem);
+    line-height: 1.12;
     letter-spacing: -0.015em;
+    max-width: 21ch;
     text-wrap: balance;
 }
 
 .hero__deck {
     margin: 0;
     max-width: 62ch;
-    color: var(--text-secondary);
-    font-size: var(--step-1);
+    color: var(--ink-2);
+    font-size: clamp(0.98rem, 1.6vw, 1.08rem);
 }
-.hero__deck strong { color: var(--text-primary); font-weight: 500; }
+.hero__deck strong { color: var(--ink); font-weight: 500; }
 
 .hero__hints {
-    margin-top: 1.75rem;
+    margin-top: 1.6rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.9rem 1.75rem;
+    gap: 0.9rem 1.6rem;
 }
 
 .hero__how {
     margin: 0;
-    font-size: var(--step--1);
-    color: var(--text-muted);
+    font-size: 0.9rem;
+    color: var(--ink-3);
 }
 
-.legend { display: flex; gap: 1.1rem; }
-
-.legend__item {
+.legend {
+    list-style: none;
+    margin: 0; padding: 0;
     display: flex;
-    align-items: center;
-    gap: 0.45rem;
+    gap: 1.1rem;
     font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--text-secondary);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
 }
+
+.legend__item { display: inline-flex; align-items: center; gap: 0.45rem; }
 
 .legend__dot {
-    width: 10px; height: 10px;
+    width: 9px; height: 9px;
     border-radius: 50%;
 }
-.legend__item--ready .legend__dot { background: var(--qgis); box-shadow: 0 0 8px rgba(47, 201, 110, 0.6); }
-.legend__item--soon  .legend__dot { background: transparent; border: 1.5px dashed var(--text-muted); }
+.legend__item--ready .legend__dot { background: var(--qgis); box-shadow: 0 0 8px rgba(47, 201, 110, 0.7); }
+.legend__item--soon .legend__dot { background: transparent; border: 1.5px dashed var(--ink-3); }
 
-/* ─────────────────────────  NETWORK  ───────────────────────── */
+/* ─────────────────────── network shell ─────────────────────── */
 
 .network {
-    position: relative;
-    max-width: var(--shell);
+    max-width: var(--shell-wide);
     margin: 0 auto;
-    padding: clamp(2.5rem, 5vw, 4rem) var(--gutter) 1rem;
+    padding: clamp(1.6rem, 4vw, 3rem) clamp(0.9rem, 2.5vw, 1.5rem) 2rem;
 }
+
+/* ─────────────────────── the stage (graph mode) ─────────────────────── */
+
+.stage {
+    position: relative;
+    background:
+        radial-gradient(rgba(110, 125, 150, 0.13) 1px, transparent 1.5px);
+    background-size: 30px 30px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: height 0.5s var(--easeout);
+}
+
+.stage.is-list {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    height: auto !important;
+}
+
+.mode-list .stage .wires,
+.mode-list .stage .gnodes { display: none; }
 
 .wires {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
-    z-index: 0;
     overflow: visible;
+    pointer-events: none;
 }
 
-.wire {
+.gnodes { position: absolute; inset: 0; }
+
+/* ─────────────────────── edges ─────────────────────── */
+
+.edge {
     fill: none;
-    stroke-width: 1.5;
+    stroke-width: 1.6;
     stroke-linecap: round;
     opacity: 0;
-    transition: opacity 420ms var(--ease);
+    transition: opacity 0.45s ease;
 }
-.wire.is-on { opacity: 1; }
+.edge.is-on { opacity: 0.7; }
+.edge--thin { stroke-width: 1.2; }
+.edge--thin.is-on { opacity: 0.55; }
 
-.wire--qgis   { stroke: var(--qgis-edge); }
-.wire--python { stroke: var(--python-edge); }
-.wire--shared { stroke: var(--shared-edge); }
+.edge--qgis   { stroke: var(--qgis-edge);   filter: drop-shadow(0 0 5px rgba(47, 201, 110, 0.35)); }
+.edge--python { stroke: var(--python-edge); filter: drop-shadow(0 0 5px rgba(98, 168, 240, 0.35)); }
+.edge--shared { stroke: var(--shared-edge); filter: drop-shadow(0 0 5px rgba(224, 180, 88, 0.3)); }
 
-.wire--trunk { stroke-dasharray: 5 7; }
-html.js .wire--trunk.is-on { animation: wire-flow 2.6s linear infinite; }
-
-.wire-dot { opacity: 0; transition: opacity 420ms var(--ease); }
-.wire-dot.is-on { opacity: 1; }
-.wire-dot--qgis   { fill: var(--qgis); }
-.wire-dot--python { fill: var(--python); }
-.wire-dot--shared { fill: var(--shared); }
-
-@keyframes wire-flow {
-    to { stroke-dashoffset: -24; }
+/* Trunks flow; every path has pathLength="1" so dash math is
+   normalized regardless of real length. */
+.edge--flow {
+    stroke-width: 2;
+    stroke-dasharray: 0.018 0.052;
+    animation: edgeflow 2.4s linear infinite;
 }
+.edge--flow.is-on { opacity: 0.85; }
 
-/* Route columns */
-
-.routes {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(1.5rem, 4vw, 3.5rem);
-    align-items: start;
+@keyframes edgeflow {
+    to { stroke-dashoffset: -0.07; }
 }
 
-.route { --accent: var(--qgis); --accent-soft: var(--qgis-soft); --accent-edge: var(--qgis-edge); }
-.route--python { --accent: var(--python); --accent-soft: var(--python-soft); --accent-edge: var(--python-edge); }
+.edge.is-draw {
+    stroke-dasharray: 1 1;
+    animation: edgedraw 0.5s var(--easeout) forwards;
+}
 
-/* ── The hub bubbles ── */
+@keyframes edgedraw {
+    from { stroke-dashoffset: 1; }
+    to   { stroke-dashoffset: 0; }
+}
 
-.hub {
-    position: relative;
+.edot {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.edot.is-on { opacity: 0.9; }
+.edot--qgis   { fill: var(--qgis); }
+.edot--python { fill: var(--python); }
+.edot--shared { fill: var(--shared); }
+
+/* ─────────────────────── hubs ─────────────────────── */
+
+.ghub {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 168px;
+    height: 168px;
+    border-radius: 50%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.15rem;
-    width: clamp(150px, 18vw, 178px);
-    aspect-ratio: 1;
-    margin: 0 auto clamp(1.6rem, 3.5vw, 2.4rem);
-    border-radius: 50%;
+    gap: 0.18rem;
+    text-align: center;
     background:
-        radial-gradient(circle at 30% 25%, var(--accent-soft), transparent 62%),
-        var(--canvas);
-    border: 1px solid var(--accent-edge);
-    box-shadow: 0 0 0 6px var(--bg-base), 0 0 34px -8px var(--accent-soft);
-    transition: transform var(--t) var(--ease-out), box-shadow var(--t) var(--ease);
+        radial-gradient(90px 90px at 50% 30%, rgba(255, 255, 255, 0.05), transparent 70%),
+        var(--panel-2);
+    border: 1px solid var(--line-2);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    z-index: 5;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.35s var(--spring);
 }
+.ghub:hover { transform: translate(-50%, -50%) scale(1.04); }
 
-.hub::before {
-    /* slow rotating dashed survey ring */
-    content: "";
+.ghub__ring {
     position: absolute;
     inset: -9px;
     border-radius: 50%;
-    border: 1.5px dashed var(--accent-edge);
-    opacity: 0.55;
-}
-html.js .hub::before { animation: hub-spin 40s linear infinite; }
-
-.hub:hover { transform: translateY(-3px); }
-.hub[aria-expanded="true"] {
-    box-shadow: 0 0 0 6px var(--bg-base), 0 0 44px -6px var(--accent-edge);
+    border: 1.5px dashed var(--line-2);
+    animation: hubspin 40s linear infinite;
+    pointer-events: none;
 }
 
-@keyframes hub-spin { to { transform: rotate(360deg); } }
+@keyframes hubspin { to { transform: rotate(360deg); } }
 
-.hub__tagline {
+.ghub--qgis   { border-color: rgba(47, 201, 110, 0.45); }
+.ghub--python { border-color: rgba(98, 168, 240, 0.45); }
+.ghub--qgis .ghub__ring   { border-color: rgba(47, 201, 110, 0.35); }
+.ghub--python .ghub__ring { border-color: rgba(98, 168, 240, 0.35); }
+
+.ghub--qgis.is-open,
+.ghub--qgis:hover   { box-shadow: 0 0 0 5px var(--qgis-soft), 0 18px 44px rgba(0, 0, 0, 0.5); }
+.ghub--python.is-open,
+.ghub--python:hover { box-shadow: 0 0 0 5px var(--python-soft), 0 18px 44px rgba(0, 0, 0, 0.5); }
+
+.ghub__tagline {
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.14em;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
 }
 
-.hub__label {
+.ghub__label {
     font-family: var(--font-display);
-    font-size: clamp(1.6rem, 2.6vw, 2rem);
     font-weight: 700;
+    font-size: 1.75rem;
     letter-spacing: -0.01em;
-    color: var(--accent);
+    line-height: 1.05;
 }
+.ghub--qgis .ghub__label   { color: var(--qgis); }
+.ghub--python .ghub__label { color: var(--python); }
 
-.hub__count {
+.ghub__count {
     font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--text-secondary);
+    font-size: 0.72rem;
+    color: var(--ink-2);
 }
 
-.hub__chev {
-    width: 16px; height: 16px;
-    margin-top: 0.2rem;
-    color: var(--text-muted);
-    transition: transform var(--t-open) var(--ease-out), color var(--t) var(--ease);
-}
-.hub__chev svg { width: 100%; height: 100%; }
-.hub[aria-expanded="true"] .hub__chev { transform: rotate(180deg); color: var(--accent); }
+/* ─────────────────────── topic + sub cards ─────────────────────── */
 
-/* ── Kids containers (all levels) ── */
-
-.route__kids,
-.node__kids {
-    overflow: hidden;
-}
-.route__kids[hidden],
-.node__kids[hidden] { display: none; }
-
-.route__kids {
-    padding-left: var(--trunk-gutter);
-}
-
-/* Tiers of tiles */
-
-.tier {
-    display: grid;
-    gap: 0.8rem;
-}
-
-.tier > li { min-width: 0; }
-
-/* ── Node tiles ── */
-
-.node__head {
-    position: relative;
-    display: block;
-    width: 100%;
-    padding: 0.95rem 2.6rem 0.95rem 1.1rem;
-    background: linear-gradient(180deg, var(--canvas-lift), var(--canvas));
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+.gnode {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    padding: 0.7rem 0.85rem 0.65rem;
+    border-radius: var(--r-md);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 45%), var(--panel);
+    border: 1px solid var(--line-2);
+    text-align: left;
+    z-index: 4;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
     transition:
-        border-color var(--t) var(--ease),
-        background var(--t) var(--ease),
-        transform var(--t) var(--ease-out);
-}
-a.node__head { text-decoration: none; }
-
-.node__head:hover {
-    border-color: var(--accent-edge);
-    transform: translateX(3px);
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.32s ease,
+        transform 0.45s var(--spring),
+        visibility 0s linear 0s,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
-.node.is-open > .node__head {
-    border-color: var(--accent-edge);
-    background: linear-gradient(180deg, var(--canvas-lift), var(--canvas)),
-                var(--accent-soft);
-    background-blend-mode: normal;
+.gnode:hover { transform: translate(-50%, -50%) scale(1.045); z-index: 8; }
+
+.gnode.is-off {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition:
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.28s ease,
+        transform 0.4s var(--spring),
+        visibility 0s linear 0.4s;
 }
 
-.node__title {
+.gnode.is-spawning {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+}
+
+.gnode--qgis.is-open,
+.gnode--qgis:hover   { border-color: rgba(47, 201, 110, 0.6); }
+.gnode--python.is-open,
+.gnode--python:hover { border-color: rgba(98, 168, 240, 0.6); }
+
+.gnode--qgis.is-open   { box-shadow: 0 0 0 4px var(--qgis-soft), 0 12px 30px rgba(0, 0, 0, 0.45); }
+.gnode--python.is-open { box-shadow: 0 0 0 4px var(--python-soft), 0 12px 30px rgba(0, 0, 0, 0.45); }
+
+.gnode[data-status="soon"] { border-style: dashed; }
+.gnode[data-status="soon"] .gnode__title { color: var(--ink-2); }
+
+.gnode__start {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid currentColor;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.gnode--qgis .gnode__start,
+.mnode--qgis .gnode__start { color: var(--qgis); }
+.gnode--python .gnode__start,
+.mnode--python .gnode__start { color: var(--python); }
+
+.gnode__title {
     display: block;
     font-family: var(--font-display);
-    font-size: var(--step-1);
     font-weight: 600;
-    letter-spacing: 0.005em;
+    font-size: 0.98rem;
+    line-height: 1.25;
+    padding-right: 1.1rem;
 }
 
-.node__blurb {
+.gnode__blurb {
     display: block;
-    margin-top: 0.15rem;
-    font-size: var(--step--1);
-    color: var(--text-secondary);
+    margin-top: 0.2rem;
+    font-size: 0.83rem;
+    color: var(--ink-2);
 }
 
-.node__meta {
+.gnode__meta {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin-top: 0.55rem;
-    font-family: var(--font-mono);
-    font-size: 0.71rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 0.3rem 0.7rem;
+    margin-top: 0.42rem;
 }
 
-.node__count { color: var(--accent); }
+.gnode__count {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+.gnode--qgis .gnode__count,
+.mnode--qgis .gnode__count { color: var(--qgis); }
+.gnode--python .gnode__count,
+.mnode--python .gnode__count { color: var(--python); }
+.fcard .gnode__count { color: var(--shared); }
+.mroute .gnode__count { color: var(--ink-2); }
 
-.node__flag {
+.gnode__flag {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.1rem 0.5rem;
-    border: 1px dashed var(--line);
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border: 1px dashed var(--line-2);
     border-radius: 999px;
-    color: var(--text-muted);
+    padding: 0.14rem 0.5rem;
 }
-.node__flag svg { width: 11px; height: 11px; }
+.gnode__flag svg { width: 11px; height: 11px; }
 
-.node__chev {
+.gnode__plus {
     position: absolute;
-    top: 1.05rem;
-    right: 0.95rem;
-    width: 17px; height: 17px;
-    color: var(--text-muted);
-    transition: transform var(--t-open) var(--ease-out), color var(--t) var(--ease);
+    top: 0.68rem;
+    right: 0.6rem;
+    width: 18px; height: 18px;
+    color: var(--ink-3);
+    transition: transform 0.32s var(--spring), color 0.2s ease;
 }
-.node__chev svg { width: 100%; height: 100%; }
-.node.is-open > .node__head .node__chev { transform: rotate(180deg); color: var(--accent); }
+.gnode__plus svg { width: 100%; height: 100%; }
+.gnode.is-open .gnode__plus,
+.fcard.is-open .gnode__plus,
+details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--ink); }
 
-/* External link tiles get an arrow instead of a chevron */
-.node__arrow {
+.gnode--sub {
+    width: 176px;
+    padding: 0.6rem 0.75rem 0.55rem;
+}
+.gnode--sub .gnode__title { font-size: 0.9rem; }
+
+/* Radiation ornament on the lateral QGIS node */
+.gnode--emit::before,
+.gnode--emit::after {
+    content: "";
     position: absolute;
-    top: 1.05rem;
-    right: 0.95rem;
-    width: 16px; height: 16px;
-    color: var(--text-muted);
-    transition: transform var(--t) var(--ease-out), color var(--t) var(--ease);
+    left: -26px;
+    width: 18px;
+    border-top: 1.5px dashed var(--qgis-edge);
+    opacity: 0.6;
 }
-.node__arrow svg { width: 100%; height: 100%; }
-a.node__head:hover .node__arrow { transform: translate(2px, -2px); color: var(--accent); }
+.gnode--emit::before { top: 26%; transform: rotate(-24deg); }
+.gnode--emit::after  { top: 68%; transform: rotate(24deg); }
 
-/* Placeholder tiles */
-.node[data-status="soon"] > .node__head {
-    border-style: dashed;
-    background: var(--inset);
-}
-.node[data-status="soon"] > .node__head .node__title { color: var(--text-secondary); }
-
-/* ── Rails: threading for level 2+ ── */
-
-.node__kids {
+/* Band cards are in flow, not absolute */
+.gband .gnode {
     position: relative;
-    margin-left: 0.95rem;
-    padding: 0.8rem 0 0.35rem 1.35rem;
+    transform: none;
+    left: auto !important;
+    top: auto !important;
+    z-index: 1;
 }
+.gband .gnode:hover { transform: scale(1.035); }
+.gband .gnode.is-spawning { transform: none; }
 
-.node__kids::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.15rem;
-    bottom: 0.55rem;
-    border-left: 1.5px dashed var(--accent-edge);
-    opacity: 0.65;
-}
+/* ─────────────────────── leaves ─────────────────────── */
 
-.node__kids .tier { gap: 0.65rem; }
-
-.node__kids .tier > li { position: relative; }
-
-.node__kids .tier > li::before {
-    content: "";
-    position: absolute;
-    left: -1.35rem;
-    top: 1.5rem;
-    width: 1rem;
-    border-top: 1.5px dashed var(--accent-edge);
-    opacity: 0.65;
-}
-
-.node__kids .tier > li::after {
-    /* station dot where the tick meets the rail */
-    content: "";
-    position: absolute;
-    left: calc(-1.35rem - 3.5px);
-    top: calc(1.5rem - 2.75px);
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--bg-base);
-    border: 1.5px solid var(--accent);
-}
-
-/* Nested tiles shrink a touch per level */
-.node__kids .node__head { padding: 0.8rem 2.5rem 0.8rem 1rem; border-radius: var(--radius-sm); }
-.node__kids .node__title { font-size: var(--step-0); }
-.node__kids .node__chev,
-.node__kids .node__arrow { top: 0.85rem; }
-
-/* ── Link chips (the leaves) ── */
-
-.chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    position: relative;
-}
-
-.tier + .chips { margin-top: 0.65rem; }
-
-/* chips inside a kids container sit on the same rail */
-.node__kids > .chips::before {
-    content: "";
-    position: absolute;
-    left: -1.35rem;
-    top: 1.05rem;
-    width: 1rem;
-    border-top: 1.5px dashed var(--accent-edge);
-    opacity: 0.65;
-}
-.node__kids > .chips::after {
-    content: "";
-    position: absolute;
-    left: calc(-1.35rem - 3.5px);
-    top: calc(1.05rem - 2.75px);
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--bg-base);
-    border: 1.5px solid var(--accent);
-}
-
-.chip {
+.gleaf {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.42rem 0.8rem;
-    background: var(--inset);
-    border: 1px solid var(--line);
+    max-width: 236px;
+    padding: 0.45rem 0.7rem;
     border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    color: var(--text-secondary);
+    background: var(--panel);
+    border: 1px solid var(--line-2);
+    font-size: 0.82rem;
+    line-height: 1.25;
     text-decoration: none;
-    transition:
-        border-color var(--t) var(--ease),
-        color var(--t) var(--ease),
-        transform var(--t) var(--ease-out);
+    color: var(--ink);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    transition: transform 0.3s var(--spring), border-color 0.2s ease, box-shadow 0.25s ease, opacity 0.3s ease;
 }
 
-.chip svg { width: 13px; height: 13px; flex: none; }
+.gleaf:hover { transform: translateY(-2px) scale(1.03); }
 
-a.chip:hover {
-    border-color: var(--accent-edge);
-    color: var(--text-primary);
-    transform: translateY(-2px);
+.gleaf > svg {
+    width: 14px; height: 14px;
+    flex: 0 0 auto;
+}
+.gleaf--lesson > svg { color: var(--shared); }
+.gleaf--colab > svg  { color: var(--python); }
+.gleaf--doc > svg    { color: var(--ink-2); }
+.gleaf--soon > svg   { color: var(--ink-3); }
+
+.gleaf--qgis:hover   { border-color: rgba(47, 201, 110, 0.55); }
+.gleaf--python:hover { border-color: rgba(98, 168, 240, 0.55); }
+.gleaf--shared:hover { border-color: rgba(224, 180, 88, 0.55); }
+
+.gleaf__label {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-.chip--lesson svg { color: var(--accent); }
-.chip--colab  svg { color: var(--accent); }
-.chip--doc    svg { color: var(--text-muted); }
+.gleaf__ext {
+    width: 12px; height: 12px;
+    color: var(--ink-3);
+    flex: 0 0 auto;
+    transition: transform 0.25s ease, color 0.2s ease;
+}
+.gleaf__ext svg { width: 100%; height: 100%; }
+.gleaf:hover .gleaf__ext { transform: translate(1.5px, -1.5px); color: var(--ink); }
 
-.chip--soon {
+.gleaf--soon {
     border-style: dashed;
-    color: var(--text-muted);
-    cursor: default;
-}
-.chip--soon svg { color: var(--text-muted); }
-
-.chip__ext {
-    width: 10px !important;
-    height: 10px !important;
-    color: var(--text-muted);
+    color: var(--ink-2);
+    box-shadow: none;
 }
 
-/* ── Reveal animation for children ── */
-
-html.js .tier > li,
-html.js .chips > li {
-    opacity: 0;
-    transform: translateY(10px);
+/* Satellite leaves are absolutely positioned like nodes */
+.gleaf--sat {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+    white-space: nowrap;
+    max-width: 240px;
     transition:
-        opacity 380ms var(--ease-out),
-        transform 380ms var(--ease-out);
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.3s ease,
+        transform 0.4s var(--spring),
+        visibility 0s linear 0s,
+        border-color 0.2s ease;
 }
-html.js .tier > li.is-in,
-html.js .chips > li.is-in {
-    opacity: 1;
-    transform: none;
+.gleaf--sat .gleaf__label { display: block; -webkit-line-clamp: unset; overflow: hidden; text-overflow: ellipsis; }
+.gleaf--sat:hover { transform: translate(-50%, -50%) scale(1.05); z-index: 9; }
+.gleaf--sat.is-off {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition:
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.25s ease,
+        transform 0.35s var(--spring),
+        visibility 0s linear 0.35s;
+}
+.gleaf--sat.is-spawning {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
 }
 
-/* ─────────────────────────  FOUNDATION  ───────────────────────── */
+/* ─────────────────────── bands ─────────────────────── */
+
+.gband {
+    position: absolute;
+    z-index: 3;
+    padding: 1.5rem 0.4rem 0.6rem;
+}
+
+.gband__label {
+    margin: 0 0 0.7rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+.gband__label span { color: var(--ink-2); }
+.gband--qgis .gband__label span   { color: var(--qgis); }
+.gband--python .gband__label span { color: var(--python); }
+
+.gband__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0.7rem;
+}
+
+.gband__row--leaves { margin-top: 1.5rem; }
+
+.gband__row > * {
+    animation: rise 0.5s var(--spring) both;
+    animation-delay: calc(55ms * var(--i, 0));
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────── foundation ─────────────────────── */
 
 .foundation {
-    position: relative;
-    z-index: 1;
-    margin-top: clamp(3.5rem, 7vw, 5.5rem);
-    padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1.25rem, 3vw, 2.25rem) clamp(1.5rem, 3vw, 2rem);
-    background:
-        radial-gradient(ellipse 70% 90% at 50% 0%, var(--shared-soft), transparent 65%),
-        var(--bg-raise);
-    border: 1px solid var(--line-soft);
-    border-radius: calc(var(--radius) + 6px);
-    --accent: var(--shared);
-    --accent-soft: var(--shared-soft);
-    --accent-edge: var(--shared-edge);
-}
-
-.foundation__head {
-    position: relative;
-    text-align: center;
-    max-width: 56ch;
-    margin: 0 auto clamp(1.5rem, 3vw, 2rem);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100% - 2 * clamp(0.9rem, 2.5vw, 1.5rem), 960px);
+    background: linear-gradient(180deg, rgba(224, 180, 88, 0.05), transparent 40%), var(--panel);
+    border: 1px solid rgba(224, 180, 88, 0.28);
+    border-radius: var(--r-lg);
+    padding: 2.2rem clamp(1.1rem, 3vw, 2rem) 1.6rem;
+    z-index: 4;
+    transition: top 0.5s var(--easeout);
 }
 
 .junction {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 52px; height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px; height: 44px;
-    margin: -3.5rem auto 1rem;
     border-radius: 50%;
-    background: var(--bg-base);
-    border: 1px solid var(--shared-edge);
     color: var(--shared);
-    box-shadow: 0 0 0 6px var(--bg-base), 0 0 26px -6px var(--shared-edge);
+    background: var(--bg);
+    border: 1px solid rgba(224, 180, 88, 0.5);
+    box-shadow: 0 0 0 6px var(--bg), 0 0 22px rgba(224, 180, 88, 0.35);
 }
-.junction svg { width: 22px; height: 22px; }
+.junction svg {
+    width: 24px; height: 24px;
+    animation: junctionpulse 4s ease-in-out infinite;
+}
+
+@keyframes junctionpulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50%      { transform: scale(1.12); opacity: 1; }
+}
+
+.foundation__head { text-align: center; }
 
 .foundation__eyebrow {
-    margin: 0 0 0.4rem;
+    margin: 0 0 0.35rem;
     font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--shared);
 }
@@ -728,134 +791,256 @@ html.js .chips > li.is-in {
 .foundation__title {
     margin: 0 0 0.5rem;
     font-family: var(--font-display);
-    font-size: var(--step-2);
     font-weight: 700;
+    font-size: clamp(1.3rem, 2.6vw, 1.7rem);
 }
 
 .foundation__deck {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--step-0);
+    margin: 0 auto;
+    max-width: 52ch;
+    color: var(--ink-2);
+    font-size: 0.95rem;
 }
 
-.tier--foundation {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+.fgrid {
+    list-style: none;
+    margin: 1.6rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 0.9rem;
-    align-items: start;
 }
 
-/* ─────────────────────────  NOSCRIPT  ───────────────────────── */
+.fcard {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--panel-2);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.fcard[data-status="soon"] { border-style: dashed; }
+.fcard.is-open,
+.fcard:hover { border-color: rgba(224, 180, 88, 0.5); }
+.fcard.is-open { box-shadow: 0 0 0 4px var(--shared-soft); }
+
+.fcard__head {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.85rem 2.4rem 0.8rem 1rem;
+    border-radius: var(--r-md);
+}
+
+.fcard__kids {
+    padding: 0 1rem 1rem;
+}
+.fcard__kids .gband__row { justify-content: flex-start; }
+
+/* ─────────────────────── tooltip ─────────────────────── */
+
+.tip {
+    position: absolute;
+    z-index: 80;
+    width: max-content;
+    max-width: 264px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    padding: 0.7rem 0.85rem;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.tip.is-on { opacity: 1; transform: translateY(0); }
+
+.tip__title {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.tip__blurb {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    color: var(--ink-2);
+}
+
+.tip__meta {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.tip__pill {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.14rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    color: var(--ink-2);
+}
+.tip__pill--ready { color: var(--qgis); border-color: rgba(47, 201, 110, 0.45); }
+.tip__pill--soon  { color: var(--ink-3); border-style: dashed; }
+
+/* ─────────────────────── list mode (mobile tree) ─────────────────────── */
+
+.mtree {
+    display: grid;
+    gap: 1rem;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.mroute {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-lg);
+    background: var(--panel);
+    overflow: hidden;
+}
+.mroute--qgis   { border-color: rgba(47, 201, 110, 0.4); }
+.mroute--python { border-color: rgba(98, 168, 240, 0.4); }
+
+.mroute__head {
+    position: relative;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.8rem;
+    padding: 1rem 2.6rem 1rem 1.1rem;
+    cursor: pointer;
+}
+.mroute__head::-webkit-details-marker { display: none; }
+
+.mroute__tag {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    flex-basis: 100%;
+}
+
+.mroute__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.45rem;
+}
+.mroute--qgis .mroute__name   { color: var(--qgis); }
+.mroute--python .mroute__name { color: var(--python); }
+
+.mroute__count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-2);
+}
+
+.mroute__head .gnode__plus { top: 50%; margin-top: -9px; right: 1rem; }
+
+.mroute__body {
+    padding: 0.2rem 0.9rem 1rem;
+    display: grid;
+    gap: 0.6rem;
+}
+
+.mnode {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--panel-2);
+}
+.mnode[data-status="soon"] { border-style: dashed; }
+
+.mnode__head {
+    position: relative;
+    list-style: none;
+    display: block;
+    padding: 0.75rem 2.4rem 0.7rem 0.9rem;
+    cursor: pointer;
+}
+.mnode__head::-webkit-details-marker { display: none; }
+.mnode__head .gnode__plus { top: 0.8rem; }
+.mnode .gnode__start { position: static; display: inline-block; margin-bottom: 0.3rem; }
+
+.mnode__body {
+    padding: 0.1rem 0.8rem 0.85rem;
+    display: grid;
+    gap: 0.55rem;
+}
+.mnode__body .gband__row { justify-content: flex-start; }
+
+.mnode--flat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.75rem 0.9rem;
+    border-style: dashed;
+    color: var(--ink-2);
+}
+
+.mode-list .foundation {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: 760px;
+    margin: 2.4rem auto 0;
+}
+.mode-list .junction { display: none; }
+
+/* ─────────────────────── noscript + colophon ─────────────────────── */
 
 .noscript {
-    position: relative;
-    z-index: 1;
-    margin-top: 2rem;
-    padding: 1.25rem 1.5rem;
-    background: var(--canvas);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    max-width: 760px;
+    margin: 1.5rem auto;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--panel);
 }
-.noscript a { color: var(--qgis); }
-
-/* ─────────────────────────  COLOPHON  ───────────────────────── */
+.noscript a { color: var(--python); }
 
 .colophon {
-    margin-top: clamp(3rem, 7vw, 5rem);
-    border-top: 1px solid var(--line-soft);
+    border-top: 1px solid var(--line);
+    margin-top: 2rem;
 }
 
 .colophon__inner {
     max-width: var(--shell);
     margin: 0 auto;
-    padding: 1.5rem var(--gutter) 2rem;
+    padding: 1.4rem var(--gutter) 1.8rem;
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem 2rem;
     justify-content: space-between;
-    font-size: var(--step--1);
-    color: var(--text-muted);
+    font-size: 0.85rem;
+    color: var(--ink-3);
 }
-.colophon__inner p { margin: 0; }
-.colophon__inner a { color: var(--text-secondary); }
+.colophon a { color: var(--ink-2); }
+.colophon__note { margin: 0; }
+.colophon p { margin: 0; }
 
-/* ─────────────────────────  RESPONSIVE  ───────────────────────── */
+/* ─────────────────────── narrow adjustments ─────────────────────── */
 
-@media (max-width: 899px) {
-
-    /* single column: routes stack, SVG wires are off (app.js checks
-       the same breakpoint), each column draws its own CSS trunk */
-    .routes { grid-template-columns: 1fr; gap: 3rem; }
-
-    .route { position: relative; }
-
-    .route::before {
-        content: "";
-        position: absolute;
-        left: calc(var(--trunk-gutter) / 2);
-        top: 0;
-        bottom: -3rem;
-        border-left: 1.5px dashed var(--accent-edge);
-        opacity: 0.5;
-    }
-    .route:last-child::before { bottom: -3.5rem; }
-
-    .hub { margin-left: 0; }
-
-    /* ticks from the trunk to each level 1 tile (SVG layer is off here) */
-    .route__kids > .tier > li { position: relative; }
-
-    .route__kids > .tier > li::before {
-        content: "";
-        position: absolute;
-        left: calc(var(--trunk-gutter) / -2);
-        top: 1.5rem;
-        width: calc(var(--trunk-gutter) / 2);
-        border-top: 1.5px dashed var(--accent-edge);
-        opacity: 0.5;
-    }
-
-    .route__kids > .tier > li::after {
-        content: "";
-        position: absolute;
-        left: calc(var(--trunk-gutter) / -2 - 3.5px);
-        top: calc(1.5rem - 2.75px);
-        width: 7px; height: 7px;
-        border-radius: 50%;
-        background: var(--bg-base);
-        border: 1.5px solid var(--accent);
-    }
-
-    .foundation { margin-top: 3rem; }
-    .junction { margin-top: -3.25rem; }
+@media (max-width: 640px) {
+    .masthead__partner, .masthead__rule { display: none; }
+    .hero__hints { flex-direction: column; align-items: flex-start; }
 }
 
-@media (max-width: 560px) {
-    .masthead__partner { display: none; }
-    .masthead__rule { display: none; }
-
-    .route { --trunk-gutter: 34px; }
-
-    .node__kids { margin-left: 0.4rem; padding-left: 1.05rem; }
-    .node__kids .tier > li::before,
-    .node__kids > .chips::before { left: -1.05rem; width: 0.7rem; }
-    .node__kids .tier > li::after,
-    .node__kids > .chips::after { left: calc(-1.05rem - 3.5px); }
-}
-
-/* ─────────────────────────  REDUCED MOTION  ───────────────────────── */
+/* ─────────────────────── reduced motion ─────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-
     *, *::before, *::after {
-        animation-duration: 0.01ms !important;
+        animation-duration: 0.001s !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        transition-duration: 0.001s !important;
     }
-
-    html.js .tier > li,
-    html.js .chips > li {
-        opacity: 1;
-        transform: none;
-    }
+    .ghub__ring, .junction svg { animation: none !important; }
+    .edge--flow { animation: none !important; stroke-dasharray: 0.014 0.03; }
 }

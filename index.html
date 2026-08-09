@@ -57,7 +57,7 @@
                 <p class="hero__deck">Free, hands on training for putting places, distances, and patterns to work in social science research. Pick the <strong>QGIS</strong> route for point and click desktop mapping, or the <strong>Python</strong> route for notebook driven analysis. Both routes share one foundation: managing and preserving your data.</p>
 
                 <div class="hero__hints">
-                    <p class="hero__how">Select a route to reveal its topics, then open a topic to reach its lessons and notebooks.</p>
+                    <p class="hero__how">Select a route to open its map, then open a topic to reach its lessons and notebooks.</p>
                     <ul class="legend" role="list" aria-label="Module status legend">
                         <li class="legend__item legend__item--ready"><span class="legend__dot" aria-hidden="true"></span>Open now</li>
                         <li class="legend__item legend__item--soon"><span class="legend__dot" aria-hidden="true"></span>In progress</li>
@@ -66,30 +66,34 @@
             </div>
         </section>
 
-        <!-- =========================  THE NETWORK  ========================= -->
+        <!-- =========================  THE MAP  ========================= -->
         <section class="network" id="network" aria-label="Training routes">
 
-            <!-- SVG layer for trunks, branches, and the junction. Drawn by app.js. -->
-            <svg class="wires" id="wires" aria-hidden="true" focusable="false"></svg>
+            <!-- Graph mode (wide screens). Nodes and wires are generated
+                 by app.js from content-data.js. -->
+            <div class="stage" id="stage">
+                <svg class="wires" id="wires" aria-hidden="true" focusable="false"></svg>
+                <div class="gnodes" id="gnodes"></div>
 
-            <!-- The two route columns. Filled by app.js from content-data.js. -->
-            <div class="routes" id="routes"></div>
+                <!-- Common ground: both route outlines converge here. -->
+                <section class="foundation" id="foundation" aria-labelledby="foundation-title">
+                    <header class="foundation__head">
+                        <span class="junction" id="junction" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="7.5" y="7.5" width="9" height="9" transform="rotate(45 12 12)"/>
+                                <path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/>
+                            </svg>
+                        </span>
+                        <p class="foundation__eyebrow">Shared by both routes</p>
+                        <h2 class="foundation__title" id="foundation-title">Common Ground</h2>
+                        <p class="foundation__deck" id="foundation-deck"></p>
+                    </header>
+                    <ul class="fgrid" id="foundation-list" role="list"></ul>
+                </section>
+            </div>
 
-            <!-- Common ground: both trunks converge here. -->
-            <section class="foundation" id="foundation" aria-labelledby="foundation-title">
-                <header class="foundation__head">
-                    <span class="junction" id="junction" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="7.5" y="7.5" width="9" height="9" transform="rotate(45 12 12)"/>
-                            <path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/>
-                        </svg>
-                    </span>
-                    <p class="foundation__eyebrow">Shared by both routes</p>
-                    <h2 class="foundation__title" id="foundation-title">Common Ground</h2>
-                    <p class="foundation__deck" id="foundation-deck"></p>
-                </header>
-                <ul class="tier tier--foundation" id="foundation-list" role="list"></ul>
-            </section>
+            <!-- List mode (narrow screens). Same content, vertical tree. -->
+            <div class="mtree" id="mobile-tree" hidden></div>
 
             <noscript>
                 <div class="noscript">
@@ -110,6 +114,7 @@
 
         </section>
 
+        <div class="tip" id="tip" hidden aria-hidden="true"></div>
         <p class="visually-hidden" id="a11y-status" role="status" aria-live="polite"></p>
 
     </main>
