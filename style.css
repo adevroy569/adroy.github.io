@@ -1,0 +1,1046 @@
+/* ============================================================
+   Geospatial Training Tutorials, style.css
+   A dark cartographic theme: graticule backdrop, two accent
+   inks (QGIS green, Python blue), gold for shared ground.
+   Graph mode styles the node map; list mode styles the same
+   content as a vertical disclosure tree on narrow screens.
+   ============================================================ */
+
+:root {
+    --bg:        #0B0F19;
+    --bg-2:      #0E1422;
+    --panel:     #111A2B;
+    --panel-2:   #16202F;
+    --line:      #1E2A3E;
+    --line-2:    #2A3A55;
+
+    --ink:       #E8EDF6;
+    --ink-2:     #A6B4CB;
+    --ink-3:     #6E7D96;
+
+    --qgis:        #2FC96E;
+    --qgis-soft:   rgba(47, 201, 110, 0.13);
+    --qgis-edge:   rgba(47, 201, 110, 0.55);
+
+    --python:      #62A8F0;
+    --python-soft: rgba(98, 168, 240, 0.13);
+    --python-edge: rgba(98, 168, 240, 0.55);
+
+    --shared:      #E0B458;
+    --shared-soft: rgba(224, 180, 88, 0.12);
+    --shared-edge: rgba(224, 180, 88, 0.55);
+
+    --font-display: "Space Grotesk", "Avenir Next", sans-serif;
+    --font-body:    "IBM Plex Sans", "Segoe UI", sans-serif;
+    --font-mono:    "IBM Plex Mono", "SF Mono", monospace;
+
+    --shell: 1160px;
+    --shell-wide: 1560px;
+    --gutter: clamp(1.1rem, 3.5vw, 2.4rem);
+
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 20px;
+
+    --spring: cubic-bezier(0.3, 1.3, 0.45, 1);
+    --easeout: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ─────────────────────── base ─────────────────────── */
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(1100px 500px at 18% -5%, rgba(47, 201, 110, 0.05), transparent 60%),
+        radial-gradient(1100px 520px at 85% -5%, rgba(98, 168, 240, 0.06), transparent 60%),
+        var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+
+a { color: inherit; }
+
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+:focus-visible {
+    outline: 2px solid var(--python);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.skip-link {
+    position: absolute;
+    left: 1rem; top: -3rem;
+    z-index: 100;
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-sm);
+    padding: 0.55rem 0.9rem;
+    text-decoration: none;
+    transition: top 0.2s ease;
+}
+.skip-link:focus { top: 1rem; }
+
+/* ─────────────────────── masthead ─────────────────────── */
+
+.masthead {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(11, 15, 25, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+}
+
+.masthead__inner {
+    max-width: var(--shell);
+    margin: 0 auto;
+    padding: 0.7rem var(--gutter);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+}
+
+.brand__mark {
+    display: inline-flex;
+    width: 30px; height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    color: var(--qgis);
+    background: var(--qgis-soft);
+    border: 1px solid rgba(47, 201, 110, 0.3);
+}
+.brand__mark svg { width: 17px; height: 17px; }
+
+.brand__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+}
+
+.masthead__rule {
+    width: 1px;
+    height: 22px;
+    background: var(--line-2);
+}
+
+.masthead__partner { opacity: 0.85; transition: opacity 0.2s ease; }
+.masthead__partner:hover { opacity: 1; }
+.masthead__partner img { height: 20px; width: auto; }
+
+.nav { margin-left: auto; }
+
+.nav__list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    gap: 0.35rem;
+}
+
+.nav__link {
+    display: inline-block;
+    padding: 0.42rem 0.85rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    border: 1px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.nav__link:hover { color: var(--ink); border-color: var(--line-2); }
+.nav__link.is-current {
+    color: var(--ink);
+    background: var(--panel-2);
+    border-color: var(--line-2);
+}
+
+/* ─────────────────────── hero ─────────────────────── */
+
+.hero {
+    border-bottom: 1px solid var(--line);
+    background:
+        repeating-linear-gradient(0deg, rgba(42, 58, 85, 0.16) 0 1px, transparent 1px 88px),
+        repeating-linear-gradient(90deg, rgba(42, 58, 85, 0.16) 0 1px, transparent 1px 88px),
+        radial-gradient(700px 320px at 50% 115%, rgba(224, 180, 88, 0.05), transparent 70%),
+        var(--bg-2);
+}
+
+.hero__inner {
+    max-width: var(--shell);
+    margin: 0 auto;
+    padding: clamp(2.6rem, 6vw, 4.4rem) var(--gutter) clamp(2rem, 5vw, 3.2rem);
+}
+
+.hero__eyebrow {
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.hero__eyebrow-sep {
+    width: 34px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--qgis), var(--python));
+    opacity: 0.7;
+}
+
+.hero__title {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.6vw, 3.15rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    max-width: 21ch;
+    text-wrap: balance;
+}
+
+.hero__deck {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--ink-2);
+    font-size: clamp(0.98rem, 1.6vw, 1.08rem);
+}
+.hero__deck strong { color: var(--ink); font-weight: 500; }
+
+.hero__hints {
+    margin-top: 1.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem 1.6rem;
+}
+
+.hero__how {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-3);
+}
+
+.legend {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    gap: 1.1rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.legend__item { display: inline-flex; align-items: center; gap: 0.45rem; }
+
+.legend__dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+}
+.legend__item--ready .legend__dot { background: var(--qgis); box-shadow: 0 0 8px rgba(47, 201, 110, 0.7); }
+.legend__item--soon .legend__dot { background: transparent; border: 1.5px dashed var(--ink-3); }
+
+/* ─────────────────────── network shell ─────────────────────── */
+
+.network {
+    max-width: var(--shell-wide);
+    margin: 0 auto;
+    padding: clamp(1.6rem, 4vw, 3rem) clamp(0.9rem, 2.5vw, 1.5rem) 2rem;
+}
+
+/* ─────────────────────── the stage (graph mode) ─────────────────────── */
+
+.stage {
+    position: relative;
+    background:
+        radial-gradient(rgba(110, 125, 150, 0.13) 1px, transparent 1.5px);
+    background-size: 30px 30px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: height 0.5s var(--easeout);
+}
+
+.stage.is-list {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    height: auto !important;
+}
+
+.mode-list .stage .wires,
+.mode-list .stage .gnodes { display: none; }
+
+.wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.gnodes { position: absolute; inset: 0; }
+
+/* ─────────────────────── edges ─────────────────────── */
+
+.edge {
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+.edge.is-on { opacity: 0.7; }
+.edge--thin { stroke-width: 1.2; }
+.edge--thin.is-on { opacity: 0.55; }
+
+.edge--qgis   { stroke: var(--qgis-edge);   filter: drop-shadow(0 0 5px rgba(47, 201, 110, 0.35)); }
+.edge--python { stroke: var(--python-edge); filter: drop-shadow(0 0 5px rgba(98, 168, 240, 0.35)); }
+.edge--shared { stroke: var(--shared-edge); filter: drop-shadow(0 0 5px rgba(224, 180, 88, 0.3)); }
+
+/* Trunks flow; every path has pathLength="1" so dash math is
+   normalized regardless of real length. */
+.edge--flow {
+    stroke-width: 2;
+    stroke-dasharray: 0.018 0.052;
+    animation: edgeflow 2.4s linear infinite;
+}
+.edge--flow.is-on { opacity: 0.85; }
+
+@keyframes edgeflow {
+    to { stroke-dashoffset: -0.07; }
+}
+
+.edge.is-draw {
+    stroke-dasharray: 1 1;
+    animation: edgedraw 0.5s var(--easeout) forwards;
+}
+
+@keyframes edgedraw {
+    from { stroke-dashoffset: 1; }
+    to   { stroke-dashoffset: 0; }
+}
+
+.edot {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.edot.is-on { opacity: 0.9; }
+.edot--qgis   { fill: var(--qgis); }
+.edot--python { fill: var(--python); }
+.edot--shared { fill: var(--shared); }
+
+/* ─────────────────────── hubs ─────────────────────── */
+
+.ghub {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 168px;
+    height: 168px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    text-align: center;
+    background:
+        radial-gradient(90px 90px at 50% 30%, rgba(255, 255, 255, 0.05), transparent 70%),
+        var(--panel-2);
+    border: 1px solid var(--line-2);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    z-index: 5;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.35s var(--spring);
+}
+.ghub:hover { transform: translate(-50%, -50%) scale(1.04); }
+
+.ghub__ring {
+    position: absolute;
+    inset: -9px;
+    border-radius: 50%;
+    border: 1.5px dashed var(--line-2);
+    animation: hubspin 40s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes hubspin { to { transform: rotate(360deg); } }
+
+.ghub--qgis   { border-color: rgba(47, 201, 110, 0.45); }
+.ghub--python { border-color: rgba(98, 168, 240, 0.45); }
+.ghub--qgis .ghub__ring   { border-color: rgba(47, 201, 110, 0.35); }
+.ghub--python .ghub__ring { border-color: rgba(98, 168, 240, 0.35); }
+
+.ghub--qgis.is-open,
+.ghub--qgis:hover   { box-shadow: 0 0 0 5px var(--qgis-soft), 0 18px 44px rgba(0, 0, 0, 0.5); }
+.ghub--python.is-open,
+.ghub--python:hover { box-shadow: 0 0 0 5px var(--python-soft), 0 18px 44px rgba(0, 0, 0, 0.5); }
+
+.ghub__tagline {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.ghub__label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+}
+.ghub--qgis .ghub__label   { color: var(--qgis); }
+.ghub--python .ghub__label { color: var(--python); }
+
+.ghub__count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-2);
+}
+
+/* ─────────────────────── topic + sub cards ─────────────────────── */
+
+.gnode {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    padding: 0.7rem 0.85rem 0.65rem;
+    border-radius: var(--r-md);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 45%), var(--panel);
+    border: 1px solid var(--line-2);
+    text-align: left;
+    z-index: 4;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+    transition:
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.32s ease,
+        transform 0.45s var(--spring),
+        visibility 0s linear 0s,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.gnode:hover { transform: translate(-50%, -50%) scale(1.045); z-index: 8; }
+
+.gnode.is-off {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition:
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.28s ease,
+        transform 0.4s var(--spring),
+        visibility 0s linear 0.4s;
+}
+
+.gnode.is-spawning {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+}
+
+.gnode--qgis.is-open,
+.gnode--qgis:hover   { border-color: rgba(47, 201, 110, 0.6); }
+.gnode--python.is-open,
+.gnode--python:hover { border-color: rgba(98, 168, 240, 0.6); }
+
+.gnode--qgis.is-open   { box-shadow: 0 0 0 4px var(--qgis-soft), 0 12px 30px rgba(0, 0, 0, 0.45); }
+.gnode--python.is-open { box-shadow: 0 0 0 4px var(--python-soft), 0 12px 30px rgba(0, 0, 0, 0.45); }
+
+.gnode[data-status="soon"] { border-style: dashed; }
+.gnode[data-status="soon"] .gnode__title { color: var(--ink-2); }
+
+.gnode__start {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid currentColor;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.gnode--qgis .gnode__start,
+.mnode--qgis .gnode__start { color: var(--qgis); }
+.gnode--python .gnode__start,
+.mnode--python .gnode__start { color: var(--python); }
+
+.gnode__title {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.25;
+    padding-right: 1.1rem;
+}
+
+.gnode__blurb {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.83rem;
+    color: var(--ink-2);
+}
+
+.gnode__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.7rem;
+    margin-top: 0.42rem;
+}
+
+.gnode__count {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+.gnode--qgis .gnode__count,
+.mnode--qgis .gnode__count { color: var(--qgis); }
+.gnode--python .gnode__count,
+.mnode--python .gnode__count { color: var(--python); }
+.fcard .gnode__count { color: var(--shared); }
+.mroute .gnode__count { color: var(--ink-2); }
+
+.gnode__flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border: 1px dashed var(--line-2);
+    border-radius: 999px;
+    padding: 0.14rem 0.5rem;
+}
+.gnode__flag svg { width: 11px; height: 11px; }
+
+.gnode__plus {
+    position: absolute;
+    top: 0.68rem;
+    right: 0.6rem;
+    width: 18px; height: 18px;
+    color: var(--ink-3);
+    transition: transform 0.32s var(--spring), color 0.2s ease;
+}
+.gnode__plus svg { width: 100%; height: 100%; }
+.gnode.is-open .gnode__plus,
+.fcard.is-open .gnode__plus,
+details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--ink); }
+
+.gnode--sub {
+    width: 176px;
+    padding: 0.6rem 0.75rem 0.55rem;
+}
+.gnode--sub .gnode__title { font-size: 0.9rem; }
+
+/* Radiation ornament on the lateral QGIS node */
+.gnode--emit::before,
+.gnode--emit::after {
+    content: "";
+    position: absolute;
+    left: -26px;
+    width: 18px;
+    border-top: 1.5px dashed var(--qgis-edge);
+    opacity: 0.6;
+}
+.gnode--emit::before { top: 26%; transform: rotate(-24deg); }
+.gnode--emit::after  { top: 68%; transform: rotate(24deg); }
+
+/* Band cards are in flow, not absolute */
+.gband .gnode {
+    position: relative;
+    transform: none;
+    left: auto !important;
+    top: auto !important;
+    z-index: 1;
+}
+.gband .gnode:hover { transform: scale(1.035); }
+.gband .gnode.is-spawning { transform: none; }
+
+/* ─────────────────────── leaves ─────────────────────── */
+
+.gleaf {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: 236px;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--line-2);
+    font-size: 0.82rem;
+    line-height: 1.25;
+    text-decoration: none;
+    color: var(--ink);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    transition: transform 0.3s var(--spring), border-color 0.2s ease, box-shadow 0.25s ease, opacity 0.3s ease;
+}
+
+.gleaf:hover { transform: translateY(-2px) scale(1.03); }
+
+.gleaf > svg {
+    width: 14px; height: 14px;
+    flex: 0 0 auto;
+}
+.gleaf--lesson > svg { color: var(--shared); }
+.gleaf--colab > svg  { color: var(--python); }
+.gleaf--doc > svg    { color: var(--ink-2); }
+.gleaf--soon > svg   { color: var(--ink-3); }
+
+.gleaf--qgis:hover   { border-color: rgba(47, 201, 110, 0.55); }
+.gleaf--python:hover { border-color: rgba(98, 168, 240, 0.55); }
+.gleaf--shared:hover { border-color: rgba(224, 180, 88, 0.55); }
+
+.gleaf__label {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.gleaf__ext {
+    width: 12px; height: 12px;
+    color: var(--ink-3);
+    flex: 0 0 auto;
+    transition: transform 0.25s ease, color 0.2s ease;
+}
+.gleaf__ext svg { width: 100%; height: 100%; }
+.gleaf:hover .gleaf__ext { transform: translate(1.5px, -1.5px); color: var(--ink); }
+
+.gleaf--soon {
+    border-style: dashed;
+    color: var(--ink-2);
+    box-shadow: none;
+}
+
+/* Satellite leaves are absolutely positioned like nodes */
+.gleaf--sat {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+    white-space: nowrap;
+    max-width: 240px;
+    transition:
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.3s ease,
+        transform 0.4s var(--spring),
+        visibility 0s linear 0s,
+        border-color 0.2s ease;
+}
+.gleaf--sat .gleaf__label { display: block; -webkit-line-clamp: unset; overflow: hidden; text-overflow: ellipsis; }
+.gleaf--sat:hover { transform: translate(-50%, -50%) scale(1.05); z-index: 9; }
+.gleaf--sat.is-off {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition:
+        left 0.5s var(--spring),
+        top 0.5s var(--spring),
+        opacity 0.25s ease,
+        transform 0.35s var(--spring),
+        visibility 0s linear 0.35s;
+}
+.gleaf--sat.is-spawning {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+}
+
+/* ─────────────────────── bands ─────────────────────── */
+
+.gband {
+    position: absolute;
+    z-index: 3;
+    padding: 1.5rem 0.4rem 0.6rem;
+}
+
+.gband__label {
+    margin: 0 0 0.7rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+.gband__label span { color: var(--ink-2); }
+.gband--qgis .gband__label span   { color: var(--qgis); }
+.gband--python .gband__label span { color: var(--python); }
+
+.gband__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0.7rem;
+}
+
+.gband__row--leaves { margin-top: 1.5rem; }
+
+.gband__row > * {
+    animation: rise 0.5s var(--spring) both;
+    animation-delay: calc(55ms * var(--i, 0));
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────── foundation ─────────────────────── */
+
+.foundation {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100% - 2 * clamp(0.9rem, 2.5vw, 1.5rem), 960px);
+    background: linear-gradient(180deg, rgba(224, 180, 88, 0.05), transparent 40%), var(--panel);
+    border: 1px solid rgba(224, 180, 88, 0.28);
+    border-radius: var(--r-lg);
+    padding: 2.2rem clamp(1.1rem, 3vw, 2rem) 1.6rem;
+    z-index: 4;
+    transition: top 0.5s var(--easeout);
+}
+
+.junction {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 52px; height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--shared);
+    background: var(--bg);
+    border: 1px solid rgba(224, 180, 88, 0.5);
+    box-shadow: 0 0 0 6px var(--bg), 0 0 22px rgba(224, 180, 88, 0.35);
+}
+.junction svg {
+    width: 24px; height: 24px;
+    animation: junctionpulse 4s ease-in-out infinite;
+}
+
+@keyframes junctionpulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50%      { transform: scale(1.12); opacity: 1; }
+}
+
+.foundation__head { text-align: center; }
+
+.foundation__eyebrow {
+    margin: 0 0 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--shared);
+}
+
+.foundation__title {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+}
+
+.foundation__deck {
+    margin: 0 auto;
+    max-width: 52ch;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+}
+
+.fgrid {
+    list-style: none;
+    margin: 1.6rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.9rem;
+}
+
+.fcard {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--panel-2);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.fcard[data-status="soon"] { border-style: dashed; }
+.fcard.is-open,
+.fcard:hover { border-color: rgba(224, 180, 88, 0.5); }
+.fcard.is-open { box-shadow: 0 0 0 4px var(--shared-soft); }
+
+.fcard__head {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.85rem 2.4rem 0.8rem 1rem;
+    border-radius: var(--r-md);
+}
+
+.fcard__kids {
+    padding: 0 1rem 1rem;
+}
+.fcard__kids .gband__row { justify-content: flex-start; }
+
+/* ─────────────────────── tooltip ─────────────────────── */
+
+.tip {
+    position: absolute;
+    z-index: 80;
+    width: max-content;
+    max-width: 264px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    padding: 0.7rem 0.85rem;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.tip.is-on { opacity: 1; transform: translateY(0); }
+
+.tip__title {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.tip__blurb {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    color: var(--ink-2);
+}
+
+.tip__meta {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.tip__pill {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.14rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    color: var(--ink-2);
+}
+.tip__pill--ready { color: var(--qgis); border-color: rgba(47, 201, 110, 0.45); }
+.tip__pill--soon  { color: var(--ink-3); border-style: dashed; }
+
+/* ─────────────────────── list mode (mobile tree) ─────────────────────── */
+
+.mtree {
+    display: grid;
+    gap: 1rem;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.mroute {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-lg);
+    background: var(--panel);
+    overflow: hidden;
+}
+.mroute--qgis   { border-color: rgba(47, 201, 110, 0.4); }
+.mroute--python { border-color: rgba(98, 168, 240, 0.4); }
+
+.mroute__head {
+    position: relative;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.8rem;
+    padding: 1rem 2.6rem 1rem 1.1rem;
+    cursor: pointer;
+}
+.mroute__head::-webkit-details-marker { display: none; }
+
+.mroute__tag {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    flex-basis: 100%;
+}
+
+.mroute__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.45rem;
+}
+.mroute--qgis .mroute__name   { color: var(--qgis); }
+.mroute--python .mroute__name { color: var(--python); }
+
+.mroute__count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-2);
+}
+
+.mroute__head .gnode__plus { top: 50%; margin-top: -9px; right: 1rem; }
+
+.mroute__body {
+    padding: 0.2rem 0.9rem 1rem;
+    display: grid;
+    gap: 0.6rem;
+}
+
+.mnode {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--panel-2);
+}
+.mnode[data-status="soon"] { border-style: dashed; }
+
+.mnode__head {
+    position: relative;
+    list-style: none;
+    display: block;
+    padding: 0.75rem 2.4rem 0.7rem 0.9rem;
+    cursor: pointer;
+}
+.mnode__head::-webkit-details-marker { display: none; }
+.mnode__head .gnode__plus { top: 0.8rem; }
+.mnode .gnode__start { position: static; display: inline-block; margin-bottom: 0.3rem; }
+
+.mnode__body {
+    padding: 0.1rem 0.8rem 0.85rem;
+    display: grid;
+    gap: 0.55rem;
+}
+.mnode__body .gband__row { justify-content: flex-start; }
+
+.mnode--flat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.75rem 0.9rem;
+    border-style: dashed;
+    color: var(--ink-2);
+}
+
+.mode-list .foundation {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: 760px;
+    margin: 2.4rem auto 0;
+}
+.mode-list .junction { display: none; }
+
+/* ─────────────────────── noscript + colophon ─────────────────────── */
+
+.noscript {
+    max-width: 760px;
+    margin: 1.5rem auto;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--panel);
+}
+.noscript a { color: var(--python); }
+
+.colophon {
+    border-top: 1px solid var(--line);
+    margin-top: 2rem;
+}
+
+.colophon__inner {
+    max-width: var(--shell);
+    margin: 0 auto;
+    padding: 1.4rem var(--gutter) 1.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 2rem;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+}
+.colophon a { color: var(--ink-2); }
+.colophon__note { margin: 0; }
+.colophon p { margin: 0; }
+
+/* ─────────────────────── narrow adjustments ─────────────────────── */
+
+@media (max-width: 640px) {
+    .masthead__partner, .masthead__rule { display: none; }
+    .hero__hints { flex-direction: column; align-items: flex-start; }
+}
+
+/* ─────────────────────── reduced motion ─────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001s !important;
+    }
+    .ghub__ring, .junction svg { animation: none !important; }
+    .edge--flow { animation: none !important; stroke-dasharray: 0.014 0.03; }
+}
