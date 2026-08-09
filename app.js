@@ -61,7 +61,7 @@
     var GRAPH_MIN = 1240;    /* px of container needed for graph mode */
     var SOLVE_W   = 1340;    /* minimum canvas the solver lays out on  */
     var SOLVE_H   = 820;     /* narrower containers scale the map down */
-    var FAN_GAP   = 32;      /* clearance from a parent to its fan     */
+    var FAN_GAP   = 44;      /* clearance from a parent to its fan     */
     var BOUND_PAD = 14;      /* keep everything inside the stage       */
     var SEP_PAD   = 13;      /* breathing room between any two cards   */
     var RELAX     = 90;      /* relaxation iterations                  */
@@ -74,17 +74,19 @@
         foundation: { x: 0.500, y: 0.72 }
     };
 
-    var RING      = { qgis: 182, python: 182, foundation: 146 };
-    var RING_OPEN = { qgis: 168, python: 168, foundation: 134 };
+    var RING      = { qgis: 194, python: 194, foundation: 184 };
+    var RING_OPEN = { qgis: 178, python: 178, foundation: 172 };
 
     /* Nominal sizes, used before the DOM is measurable and by the
        headless audit. Real layout measures the live elements. */
+    /* These mirror the fixed boxes in style.css. Card heights are
+       enforced there, so these numbers are exact rather than
+       estimates, which is what makes the audit meaningful. */
     var SIZES = {
-        hub:   { w: 130, h: 130 },
-        shub:  { w: 106, h: 106 },
-        topic: { w: 158, h: 58 },
-        sub:   { w: 138, h: 48 },
-        leaf:  { w: 168, h: 34 }
+        hub:   { w: 142, h: 142 },
+        topic: { w: 162, h: 68 },
+        sub:   { w: 148, h: 52 },
+        leaf:  { w: 176, h: 30 }
     };
 
     /* Degrees, clockwise from east. Each route is one data
@@ -114,8 +116,6 @@
         qgis:   { r: 86, from: -104, to: -254 },
         python: { r: 86, from: -76,  to: 74 }
     };
-
-    var START_TAG = { 'qgis-start': true, 'py-intro': true };
 
     /* Candidate offsets, in degrees, searched around the outward
        direction when placing a fan. */
@@ -344,7 +344,7 @@
     function nominalSize(id) {
         var entry = reg[id];
         if (!entry) return SIZES.leaf;
-        if (entry.kind === 'hub') return id === 'foundation' ? SIZES.shub : SIZES.hub;
+        if (entry.kind === 'hub') return SIZES.hub;
         return SIZES[entry.kind] || SIZES.leaf;
     }
 
@@ -570,7 +570,7 @@
     function buildGraph() {
         allRoutes().forEach(function (route) {
             var isShared = route.id === 'foundation';
-            var hub = el('button', 'ghub ghub--' + route.accent + (isShared ? ' ghub--small' : ''));
+            var hub = el('button', 'ghub ghub--' + route.accent);
             hub.type = 'button';
             hub.id = 'g-' + route.id;
             hub.dataset.tip = route.id;
@@ -590,10 +590,9 @@
     }
 
     function buildBranch(list, accent, routeId) {
-        (list || []).forEach(function (node, index) {
+        (list || []).forEach(function (node) {
             var entry = reg[node.id];
-            var step = (entry.kind === 'topic' && routeId !== 'foundation') ? index + 1 : 0;
-            var card = nodeCard(node, accent, entry.kind, step);
+            var card = nodeCard(node, accent, entry.kind);
             gnodes.appendChild(card);
             entry.gEl = card;
 
@@ -610,7 +609,7 @@
         });
     }
 
-    function nodeCard(node, accent, kind, step) {
+    function nodeCard(node, accent, kind) {
         var card = el('button', 'gnode gnode--' + (kind === 'topic' ? 'topic' : 'sub') + ' gnode--' + accent);
         card.type = 'button';
         card.id = 'g-' + node.id;
@@ -619,9 +618,6 @@
         card.classList.add('is-off');
         card.setAttribute('aria-expanded', 'false');
         card.innerHTML =
-            (step ? '<span class="gnode__step" aria-hidden="true">' + step + '</span>' +
-                    '<span class="visually-hidden">Step ' + step + ' of 5. </span>' : '') +
-            (START_TAG[node.id] ? '<span class="gnode__start">Start here</span>' : '') +
             '<span class="gnode__title">' + esc(node.label) + '</span>' +
             '<span class="gnode__meta">' +
                 '<span class="gnode__count">' + countLabel(node) + '</span>' +
@@ -772,23 +768,6 @@
         var used = {};
         if (mode !== 'graph') { fadeUnused(used); return; }
 
-        /* Both routes tie into the shared cluster, which is where
-           each lifecycle ends. Drawn first so it sits behind. */
-        var shared = lastSolve.foundation;
-        if (shared) {
-            tree.routes.forEach(function (route) {
-                var hubR = lastSolve[route.id];
-                if (!hubR) return;
-                var pa = anchor(hubR, shared);
-                var pb = anchor(shared, hubR);
-                var d = 'M ' + rr(pa.x) + ' ' + rr(pa.y) +
-                        ' C ' + rr(pa.x) + ' ' + rr((pa.y + pb.y) / 2 + 40) + ' ' +
-                                rr(pb.x + (route.id === 'qgis' ? -70 : 70)) + ' ' + rr(pb.y - 26) + ' ' +
-                                rr(pb.x) + ' ' + rr(pb.y);
-                usePath('join-' + route.id, d, 'shared', false, used, true);
-            });
-        }
-
         allRoutes().forEach(function (route) {
             if (!open[route.id]) return;
             var accent = route.accent;
@@ -868,12 +847,11 @@
         usePath(key, d, accent, thin, used);
     }
 
-    function usePath(key, d, accent, thin, used, join) {
+    function usePath(key, d, accent, thin, used) {
         var p = pool[key];
         if (!p) {
             p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            p.setAttribute('class', 'edge edge--' + accent +
-                (thin ? ' edge--thin' : '') + (join ? ' edge--join' : ''));
+            p.setAttribute('class', 'edge edge--' + accent + (thin ? ' edge--thin' : ''));
             p.setAttribute('pathLength', '1');
             wires.appendChild(p);
             pool[key] = p;
@@ -1038,8 +1016,8 @@
                     (isShared ? ' modules' : ' steps') + '</span>' +
                 '<span class="gnode__plus" aria-hidden="true">' + icon('chev') + '</span>'));
             var inner = el('div', 'mroute__body');
-            route.children.forEach(function (topic, i) {
-                inner.appendChild(listNode(topic, route.accent, isShared ? 0 : i + 1));
+            route.children.forEach(function (topic) {
+                inner.appendChild(listNode(topic, route.accent));
             });
             d.appendChild(inner);
             mtree.appendChild(d);
@@ -1047,7 +1025,7 @@
         enforceListAccordion(mtree);
     }
 
-    function listNode(node, accent, step) {
+    function listNode(node, accent) {
         var chips = chipsOf(node);
         var hasKids = (node.children && node.children.length) || chips.length;
 
@@ -1061,8 +1039,6 @@
         d.id = 'm-' + node.id;
         d.dataset.status = node.status || 'ready';
         d.appendChild(el('summary', 'mnode__head',
-            (step ? '<span class="gnode__step gnode__step--flow">' + step + '</span>' : '') +
-            (START_TAG[node.id] ? '<span class="gnode__start">Start here</span>' : '') +
             '<span class="gnode__title">' + esc(node.label) + '</span>' +
             (node.blurb ? '<span class="gnode__blurb">' + esc(node.blurb) + '</span>' : '') +
             '<span class="gnode__meta"><span class="gnode__count">' + countLabel(node) + '</span>' +

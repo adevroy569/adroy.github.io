@@ -304,13 +304,6 @@ button {
 .edge--python { stroke: var(--python-edge); }
 .edge--shared { stroke: rgba(224, 180, 88, 0.5); }
 
-/* both lifecycles feed the shared cluster */
-.edge--join {
-    stroke-width: 1.5;
-    stroke-dasharray: 5 6;
-}
-.edge--join.is-on { opacity: 0.5; }
-
 /* the direction of travel around each route */
 .edge--cycle {
     stroke-width: 1.4;
@@ -389,11 +382,8 @@ button {
 }
 .ghub--qgis .ghub__label   { color: var(--qgis); }
 .ghub--python .ghub__label { color: var(--python); }
-.ghub--shared .ghub__label { color: var(--shared); font-size: 1.02rem; }
+.ghub--shared .ghub__label { color: var(--shared); font-size: 1.2rem; }
 
-/* the shared cluster hub, smaller and gold */
-.ghub--small { width: 106px; height: 106px; }
-.ghub--small .ghub__count { font-size: 0.6rem; }
 .ghub--shared { border-color: rgba(224, 180, 88, 0.45); }
 .ghub--shared .ghub__ring { border-color: rgba(224, 180, 88, 0.32); }
 .ghub--shared.is-open,
@@ -414,8 +404,12 @@ button {
 .gnode {
     position: absolute;
     transform: translate(-50%, -50%);
-    width: 176px;
-    padding: 0.5rem 1.5rem 0.45rem 0.65rem;
+    width: 162px;
+    height: 68px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.4rem 1.5rem 0.4rem 0.65rem;
     border-radius: var(--r-md);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 45%), var(--panel);
     border: 1px solid var(--line-2);
@@ -455,8 +449,9 @@ button {
 .gnode.is-dim:hover { opacity: 1; }
 
 .gnode--sub {
-    width: 158px;
-    padding: 0.42rem 1.4rem 0.4rem 0.6rem;
+    width: 148px;
+    height: 52px;
+    padding: 0.35rem 1.35rem 0.35rem 0.6rem;
     z-index: 5;
 }
 
@@ -471,123 +466,25 @@ button {
 .gnode[data-status="soon"] { border-style: dashed; }
 .gnode[data-status="soon"] .gnode__title { color: var(--ink-2); }
 
-.gnode__step {
-    position: absolute;
-    left: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 600;
-    color: var(--bg);
-    background: var(--ink-3);
-    box-shadow: 0 0 0 3px var(--bg);
-}
-.gnode--qgis .gnode__step   { background: var(--qgis); }
-.gnode--python .gnode__step { background: var(--python); }
-
-.gnode__step--flow {
-    position: static;
-    transform: none;
-    display: inline-flex;
-    margin-right: 0.4rem;
-    box-shadow: none;
-    vertical-align: middle;
-}
-.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
-.mnode--python .gnode__step--flow { background: var(--python); }
-
-.gnode__start {
-    position: absolute;
-    top: -9px;
-    left: 10px;
-    padding: 0.08rem 0.42rem;
-    border-radius: 999px;
-    background: var(--bg);
-    border: 1px solid currentColor;
-    font-family: var(--font-mono);
-    font-size: 0.54rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-.gnode--qgis .gnode__start,
-.mnode--qgis .gnode__step {
-    position: absolute;
-    left: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 600;
-    color: var(--bg);
-    background: var(--ink-3);
-    box-shadow: 0 0 0 3px var(--bg);
-}
-.gnode--qgis .gnode__step   { background: var(--qgis); }
-.gnode--python .gnode__step { background: var(--python); }
-
-.gnode__step--flow {
-    position: static;
-    transform: none;
-    display: inline-flex;
-    margin-right: 0.4rem;
-    box-shadow: none;
-    vertical-align: middle;
-}
-.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
-.mnode--python .gnode__step--flow { background: var(--python); }
-
-.gnode__start { color: var(--qgis); }
-.gnode--python .gnode__start,
-.mnode--python .gnode__step {
-    position: absolute;
-    left: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 600;
-    color: var(--bg);
-    background: var(--ink-3);
-    box-shadow: 0 0 0 3px var(--bg);
-}
-.gnode--qgis .gnode__step   { background: var(--qgis); }
-.gnode--python .gnode__step { background: var(--python); }
-
-.gnode__step--flow {
-    position: static;
-    transform: none;
-    display: inline-flex;
-    margin-right: 0.4rem;
-    box-shadow: none;
-    vertical-align: middle;
-}
-.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
-.mnode--python .gnode__step--flow { background: var(--python); }
-
-.gnode__start { color: var(--python); }
-
 .gnode__title {
     display: block;
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 0.88rem;
-    line-height: 1.22;
+    font-size: 0.86rem;
+    line-height: 1.18;
+}
+
+/* titles are clamped so a long label can never grow the box */
+.gnode--topic .gnode__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.gnode--sub .gnode__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .gnode--sub .gnode__title { font-size: 0.82rem; }
 
@@ -601,9 +498,11 @@ button {
 .gnode__meta {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.25rem 0.5rem;
-    margin-top: 0.2rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+    gap: 0.25rem 0.45rem;
+    margin-top: 0.18rem;
 }
 
 .gnode__count {
@@ -622,15 +521,16 @@ button {
 .gnode__flag {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    flex: 0 0 auto;
+    gap: 0.22rem;
     font-family: var(--font-mono);
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
     border: 1px dashed var(--line-2);
     border-radius: 999px;
-    padding: 0.08rem 0.4rem;
+    padding: 0.06rem 0.34rem;
 }
 .gnode__flag svg { width: 10px; height: 10px; }
 
@@ -654,8 +554,9 @@ details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--i
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    max-width: 194px;
-    padding: 0.36rem 0.6rem;
+    max-width: 176px;
+    height: 30px;
+    padding: 0 0.6rem;
     border-radius: 999px;
     background: var(--panel);
     border: 1px solid var(--line-2);
@@ -848,39 +749,6 @@ details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--i
 }
 .mnode__head::-webkit-details-marker { display: none; }
 .mnode__head .gnode__plus { top: 1rem; margin-top: 0; }
-.mnode .gnode__step {
-    position: absolute;
-    left: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 600;
-    color: var(--bg);
-    background: var(--ink-3);
-    box-shadow: 0 0 0 3px var(--bg);
-}
-.gnode--qgis .gnode__step   { background: var(--qgis); }
-.gnode--python .gnode__step { background: var(--python); }
-
-.gnode__step--flow {
-    position: static;
-    transform: none;
-    display: inline-flex;
-    margin-right: 0.4rem;
-    box-shadow: none;
-    vertical-align: middle;
-}
-.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
-.mnode--python .gnode__step--flow { background: var(--python); }
-
-.gnode__start { position: static; display: inline-block; margin-bottom: 0.25rem; }
-
 .mnode__body {
     padding: 0.1rem 0.75rem 0.8rem;
     display: grid;
