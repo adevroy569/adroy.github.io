@@ -60,39 +60,59 @@
 
     var GRAPH_MIN = 1240;    /* px of container needed for graph mode */
     var SOLVE_W   = 1340;    /* minimum canvas the solver lays out on  */
-    var SOLVE_H   = 700;     /* narrower containers scale the map down */
-    var RING      = 188;     /* hub to topic radius                   */
-    var RING_OPEN = 174;     /* an open topic pulls in toward its hub  */
+    var SOLVE_H   = 820;     /* narrower containers scale the map down */
     var FAN_GAP   = 32;      /* clearance from a parent to its fan     */
     var BOUND_PAD = 14;      /* keep everything inside the stage       */
     var SEP_PAD   = 13;      /* breathing room between any two cards   */
     var RELAX     = 90;      /* relaxation iterations                  */
 
+    /* Three clusters: the two routes side by side, and the shared
+       modules below and between them, where both lifecycles end. */
+    var HUB_POS = {
+        qgis:       { x: 0.305, y: 0.37 },
+        python:     { x: 0.695, y: 0.37 },
+        foundation: { x: 0.500, y: 0.72 }
+    };
+
+    var RING      = { qgis: 182, python: 182, foundation: 146 };
+    var RING_OPEN = { qgis: 168, python: 168, foundation: 134 };
+
     /* Nominal sizes, used before the DOM is measurable and by the
        headless audit. Real layout measures the live elements. */
     var SIZES = {
         hub:   { w: 130, h: 130 },
+        shub:  { w: 106, h: 106 },
         topic: { w: 158, h: 58 },
         sub:   { w: 138, h: 48 },
-        leaf:  { w: 138, h: 46 }
+        leaf:  { w: 168, h: 34 }
     };
 
-    var HUB_X = { qgis: 0.305, python: 0.695 };   /* fraction of width */
-    var HUB_Y = 0.45;                              /* fraction of height */
-
-    /* Degrees, clockwise from east, matching the wireframe. */
+    /* Degrees, clockwise from east. Each route is one data
+       lifecycle: QGIS runs anticlockwise down its own side,
+       Python runs clockwise down its own side, and both finish
+       at the bottom next to the shared modules. The numbers are
+       the visible step order on each card. */
     var TOPIC_ANGLE = {
-        'qgis-start':      -90,   /* vertical node north            */
-        'qgis-carto':      179,   /* lateral node west              */
-        'qgis-collection': 133,   /* three south facing nodes       */
-        'qgis-raster':      91,
-        'qgis-cases':       45,
+        'qgis-start':      -90,   /* 1. Getting Started      */
+        'qgis-collection': -136,  /* 2. Data Collection      */
+        'qgis-carto':      180,   /* 3. Cartography          */
+        'qgis-raster':     136,   /* 4. Raster and Remote    */
+        'qgis-cases':       92,   /* 5. Case Studies         */
 
-        'py-collection':   -54,   /* clockwise starburst, northeast */
-        'py-analysis':       2,
-        'py-intro':         54,
-        'py-viz':          101,
-        'py-cases':        147
+        'py-intro':        -90,   /* 1. Introduction         */
+        'py-collection':   -44,   /* 2. Data Collection      */
+        'py-analysis':       0,   /* 3. Data Analysis        */
+        'py-viz':           44,   /* 4. Visualization        */
+        'py-cases':         88,   /* 5. Case Studies         */
+
+        'shared-management': 148,
+        'shared-curation':    32
+    };
+
+    /* The lifecycle sweep drawn inside each route ring. */
+    var LIFECYCLE = {
+        qgis:   { r: 86, from: -104, to: -254 },
+        python: { r: 86, from: -76,  to: 74 }
     };
 
     var START_TAG = { 'qgis-start': true, 'py-intro': true };
@@ -182,13 +202,17 @@
        visibility can treat them uniformly.
        ──────────────────────────────────────────────────────── */
 
+    /* The shared block is treated as a third route so that layout,
+       edges, visibility and the list view all handle it with the
+       same code paths as QGIS and Python. */
+    function allRoutes() {
+        return tree.routes.concat([tree.shared]);
+    }
+
     function buildRegistry() {
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
             add(route.id, { data: route, parentId: null, routeId: route.id, depth: 0, kind: 'hub' });
             walk(route.children, route.id, route.id, 1);
-        });
-        tree.shared.children.forEach(function (node) {
-            add(node.id, { data: node, parentId: 'foundation', routeId: 'shared', depth: 1, kind: 'shared' });
         });
 
         function walk(list, parentId, routeId, depth) {
@@ -255,9 +279,8 @@
         var entry = reg[id];
         if (!entry) return false;
         if (entry.kind === 'hub') return true;
-        if (entry.kind === 'shared') return true;
         var cursor = entry.parentId;
-        while (cursor && cursor !== 'foundation') {
+        while (cursor) {
             if (!state[cursor]) return false;
             cursor = reg[cursor] ? reg[cursor].parentId : null;
         }
@@ -300,7 +323,6 @@
                 if (again && again.focus) again.focus({ preventScroll: true });
             }
         }
-        syncFoundation();
         scheduleSettle();
         return !was;
     }
@@ -320,8 +342,10 @@
        ──────────────────────────────────────────────────────── */
 
     function nominalSize(id) {
-        var kind = reg[id] ? reg[id].kind : 'leaf';
-        return SIZES[kind] || SIZES.leaf;
+        var entry = reg[id];
+        if (!entry) return SIZES.leaf;
+        if (entry.kind === 'hub') return id === 'foundation' ? SIZES.shub : SIZES.hub;
+        return SIZES[entry.kind] || SIZES.leaf;
     }
 
     function measuredSize(id) {
@@ -338,10 +362,11 @@
         var placed = [];
 
         /* 1. hubs, pinned */
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
             var s = sizeFn(route.id);
+            var pos = HUB_POS[route.id];
             var rect = {
-                id: route.id, x: HUB_X[route.id] * W, y: HUB_Y * H,
+                id: route.id, x: pos.x * W, y: pos.y * H,
                 w: s.w, h: s.h, pinned: true, spring: 1
             };
             out[route.id] = rect;
@@ -349,7 +374,7 @@
         });
 
         /* 2. topics on the ring */
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
             if (!state[route.id]) return;
             var hub = out[route.id];
             route.children.forEach(function (topic) {
@@ -358,7 +383,7 @@
                 /* The open topic sits closer in, which buys its own
                    children room to expand outward without leaving
                    the stage. */
-                var radius = state[topic.id] ? RING_OPEN : RING;
+                var radius = state[topic.id] ? RING_OPEN[route.id] : RING[route.id];
                 var rect = {
                     id: topic.id,
                     x: hub.x + Math.cos(a) * radius,
@@ -372,7 +397,7 @@
         });
 
         /* 3. fans, outward from the hub, deepest last */
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
             if (!state[route.id]) return;
             var hub = out[route.id];
             route.children.forEach(function (topic) {
@@ -543,30 +568,32 @@
        ──────────────────────────────────────────────────────── */
 
     function buildGraph() {
-        tree.routes.forEach(function (route) {
-            var hub = el('button', 'ghub ghub--' + route.accent);
+        allRoutes().forEach(function (route) {
+            var isShared = route.id === 'foundation';
+            var hub = el('button', 'ghub ghub--' + route.accent + (isShared ? ' ghub--small' : ''));
             hub.type = 'button';
             hub.id = 'g-' + route.id;
             hub.dataset.tip = route.id;
             hub.setAttribute('aria-expanded', 'false');
             hub.innerHTML =
                 '<span class="ghub__ring" aria-hidden="true"></span>' +
-                '<span class="ghub__tagline">' + esc(route.tagline) + '</span>' +
                 '<span class="ghub__label">' + esc(route.label) + '</span>' +
-                '<span class="ghub__count">' + route.children.length + ' topics</span>' +
+                '<span class="ghub__count">' + route.children.length +
+                    (isShared ? ' modules' : ' steps') + '</span>' +
                 '<span class="visually-hidden">, ' + esc(route.blurb) + '</span>';
             hub.addEventListener('click', function () { toggle(route.id); });
             gnodes.appendChild(hub);
             reg[route.id].gEl = hub;
 
-            buildBranch(route.children, route.accent);
+            buildBranch(route.children, route.accent, route.id);
         });
     }
 
-    function buildBranch(list, accent) {
-        (list || []).forEach(function (node) {
+    function buildBranch(list, accent, routeId) {
+        (list || []).forEach(function (node, index) {
             var entry = reg[node.id];
-            var card = nodeCard(node, accent, entry.kind);
+            var step = (entry.kind === 'topic' && routeId !== 'foundation') ? index + 1 : 0;
+            var card = nodeCard(node, accent, entry.kind, step);
             gnodes.appendChild(card);
             entry.gEl = card;
 
@@ -579,11 +606,11 @@
                 reg[id].gEl = leaf;
             });
 
-            buildBranch(node.children, accent);
+            buildBranch(node.children, accent, routeId);
         });
     }
 
-    function nodeCard(node, accent, kind) {
+    function nodeCard(node, accent, kind, step) {
         var card = el('button', 'gnode gnode--' + (kind === 'topic' ? 'topic' : 'sub') + ' gnode--' + accent);
         card.type = 'button';
         card.id = 'g-' + node.id;
@@ -592,6 +619,8 @@
         card.classList.add('is-off');
         card.setAttribute('aria-expanded', 'false');
         card.innerHTML =
+            (step ? '<span class="gnode__step" aria-hidden="true">' + step + '</span>' +
+                    '<span class="visually-hidden">Step ' + step + ' of 5. </span>' : '') +
             (START_TAG[node.id] ? '<span class="gnode__start">Start here</span>' : '') +
             '<span class="gnode__title">' + esc(node.label) + '</span>' +
             '<span class="gnode__meta">' +
@@ -625,7 +654,7 @@
 
     /* Visibility, open flags, and dimming of inactive branches. */
     function refreshGraph() {
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
             var routeOpen = !!open[route.id];
             var hub = reg[route.id].gEl;
             hub.setAttribute('aria-expanded', String(routeOpen));
@@ -719,6 +748,7 @@
         gcanvas.style.transform = viewScale === 1 ? 'none' : 'scale(' + viewScale + ')';
         wires.setAttribute('viewBox', '0 0 ' + rr(W) + ' ' + rr(H));
 
+        ensureMarkers();
         lastSolve = solve(W, H, measuredSize, open);
 
         Object.keys(lastSolve).forEach(function (id) {
@@ -742,11 +772,30 @@
         var used = {};
         if (mode !== 'graph') { fadeUnused(used); return; }
 
-        tree.routes.forEach(function (route) {
+        /* Both routes tie into the shared cluster, which is where
+           each lifecycle ends. Drawn first so it sits behind. */
+        var shared = lastSolve.foundation;
+        if (shared) {
+            tree.routes.forEach(function (route) {
+                var hubR = lastSolve[route.id];
+                if (!hubR) return;
+                var pa = anchor(hubR, shared);
+                var pb = anchor(shared, hubR);
+                var d = 'M ' + rr(pa.x) + ' ' + rr(pa.y) +
+                        ' C ' + rr(pa.x) + ' ' + rr((pa.y + pb.y) / 2 + 40) + ' ' +
+                                rr(pb.x + (route.id === 'qgis' ? -70 : 70)) + ' ' + rr(pb.y - 26) + ' ' +
+                                rr(pb.x) + ' ' + rr(pb.y);
+                usePath('join-' + route.id, d, 'shared', false, used, true);
+            });
+        }
+
+        allRoutes().forEach(function (route) {
             if (!open[route.id]) return;
             var accent = route.accent;
             var hubR = lastSolve[route.id];
             if (!hubR) return;
+
+            if (LIFECYCLE[route.id]) lifecycleArc(route.id, hubR, accent, used);
 
             route.children.forEach(function (topic) {
                 var r = lastSolve[topic.id];
@@ -759,6 +808,26 @@
         });
 
         fadeUnused(used);
+    }
+
+    /* A dashed sweep inside the ring showing which way the data
+       lifecycle runs: anticlockwise for QGIS, clockwise for
+       Python. The arrowhead marks the finish. */
+    function lifecycleArc(routeId, hub, accent, used) {
+        var cfg = LIFECYCLE[routeId];
+        var a0 = cfg.from * DEG, a1 = cfg.to * DEG;
+        var x0 = hub.x + Math.cos(a0) * cfg.r, y0 = hub.y + Math.sin(a0) * cfg.r;
+        var x1 = hub.x + Math.cos(a1) * cfg.r, y1 = hub.y + Math.sin(a1) * cfg.r;
+        var delta = a1 - a0;
+        var large = Math.abs(delta) > Math.PI ? 1 : 0;
+        var sweep = delta > 0 ? 1 : 0;
+        var d = 'M ' + rr(x0) + ' ' + rr(y0) +
+                ' A ' + cfg.r + ' ' + cfg.r + ' 0 ' + large + ' ' + sweep + ' ' + rr(x1) + ' ' + rr(y1);
+        var path = usePath('cycle-' + routeId, d, accent, false, used);
+        if (path) {
+            path.setAttribute('class', 'edge edge--' + accent + ' edge--cycle');
+            path.setAttribute('marker-end', 'url(#arrow-' + accent + ')');
+        }
     }
 
     function fanEdges(parentId, accent, used) {
@@ -799,11 +868,12 @@
         usePath(key, d, accent, thin, used);
     }
 
-    function usePath(key, d, accent, thin, used) {
+    function usePath(key, d, accent, thin, used, join) {
         var p = pool[key];
         if (!p) {
             p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            p.setAttribute('class', 'edge edge--' + accent + (thin ? ' edge--thin' : ''));
+            p.setAttribute('class', 'edge edge--' + accent +
+                (thin ? ' edge--thin' : '') + (join ? ' edge--join' : ''));
             p.setAttribute('pathLength', '1');
             wires.appendChild(p);
             pool[key] = p;
@@ -817,6 +887,7 @@
         }
         p.setAttribute('d', d);
         used[key] = true;
+        return p;
     }
 
     function dot(key, x, y, r, accent, used) {
@@ -834,6 +905,28 @@
         c.setAttribute('cx', rr(x));
         c.setAttribute('cy', rr(y));
         used[key] = true;
+    }
+
+    function ensureMarkers() {
+        if (wires.querySelector('defs')) return;
+        var ns = 'http://www.w3.org/2000/svg';
+        var defs = document.createElementNS(ns, 'defs');
+        ['qgis', 'python'].forEach(function (accent) {
+            var marker = document.createElementNS(ns, 'marker');
+            marker.setAttribute('id', 'arrow-' + accent);
+            marker.setAttribute('viewBox', '0 0 10 10');
+            marker.setAttribute('refX', '7');
+            marker.setAttribute('refY', '5');
+            marker.setAttribute('markerWidth', '5');
+            marker.setAttribute('markerHeight', '5');
+            marker.setAttribute('orient', 'auto-start-reverse');
+            var tip = document.createElementNS(ns, 'path');
+            tip.setAttribute('d', 'M 0 1 L 9 5 L 0 9 z');
+            tip.setAttribute('class', 'edge-arrow edge-arrow--' + accent);
+            marker.appendChild(tip);
+            defs.appendChild(marker);
+        });
+        wires.appendChild(defs);
     }
 
     function fadeUnused(used) {
@@ -931,79 +1024,22 @@
     }
 
     /* ────────────────────────────────────────────────────────
-       SHARED MODULES PANEL
-       ──────────────────────────────────────────────────────── */
-
-    function buildFoundation() {
-        var deck = document.getElementById('foundation-deck');
-        var list = document.getElementById('foundation-list');
-        if (deck) deck.textContent = tree.shared.blurb;
-        if (!list) return;
-
-        tree.shared.children.forEach(function (node) {
-            var li = el('li', 'fcard');
-            li.dataset.status = node.status || 'ready';
-
-            var head = el('button', 'fcard__head');
-            head.type = 'button';
-            head.id = 'g-' + node.id;
-            head.dataset.tip = node.id;
-            head.setAttribute('aria-expanded', 'false');
-            head.setAttribute('aria-controls', 'fk-' + node.id);
-            head.innerHTML =
-                '<span class="gnode__title">' + esc(node.label) + '</span>' +
-                '<span class="gnode__blurb">' + esc(node.blurb || '') + '</span>' +
-                '<span class="gnode__meta">' +
-                    '<span class="gnode__count">' + countLabel(node) + '</span>' +
-                    ((node.status === 'soon') ? '<span class="gnode__flag">' + icon('soon') + 'In progress</span>' : '') +
-                '</span>' +
-                '<span class="gnode__plus" aria-hidden="true">' + icon('chev') + '</span>';
-
-            var kids = el('div', 'fcard__kids');
-            kids.id = 'fk-' + node.id;
-            kids.hidden = true;
-            var row = el('div', 'frow');
-            chipsOf(node).forEach(function (chip) {
-                row.appendChild(leafCard(chip, 'shared'));
-            });
-            kids.appendChild(row);
-
-            head.addEventListener('click', function () { toggle(node.id); });
-
-            li.appendChild(head);
-            li.appendChild(kids);
-            list.appendChild(li);
-            reg[node.id].fEl = { li: li, head: head, kids: kids };
-        });
-    }
-
-    function syncFoundation() {
-        tree.shared.children.forEach(function (node) {
-            var f = reg[node.id].fEl;
-            if (!f) return;
-            var isOpen = !!open[node.id];
-            f.head.setAttribute('aria-expanded', String(isOpen));
-            f.kids.hidden = !isOpen;
-            f.li.classList.toggle('is-open', isOpen);
-        });
-    }
-
-    /* ────────────────────────────────────────────────────────
        LIST MODE
        ──────────────────────────────────────────────────────── */
 
     function buildList() {
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
+            var isShared = route.id === 'foundation';
             var d = el('details', 'mroute mroute--' + route.accent);
             d.id = 'm-' + route.id;
             d.appendChild(el('summary', 'mroute__head',
-                '<span class="mroute__tag">' + esc(route.tagline) + '</span>' +
                 '<span class="mroute__name">' + esc(route.label) + '</span>' +
-                '<span class="mroute__count">' + route.children.length + ' topics</span>' +
+                '<span class="mroute__count">' + route.children.length +
+                    (isShared ? ' modules' : ' steps') + '</span>' +
                 '<span class="gnode__plus" aria-hidden="true">' + icon('chev') + '</span>'));
             var inner = el('div', 'mroute__body');
-            route.children.forEach(function (topic) {
-                inner.appendChild(listNode(topic, route.accent));
+            route.children.forEach(function (topic, i) {
+                inner.appendChild(listNode(topic, route.accent, isShared ? 0 : i + 1));
             });
             d.appendChild(inner);
             mtree.appendChild(d);
@@ -1011,7 +1047,7 @@
         enforceListAccordion(mtree);
     }
 
-    function listNode(node, accent) {
+    function listNode(node, accent, step) {
         var chips = chipsOf(node);
         var hasKids = (node.children && node.children.length) || chips.length;
 
@@ -1025,6 +1061,7 @@
         d.id = 'm-' + node.id;
         d.dataset.status = node.status || 'ready';
         d.appendChild(el('summary', 'mnode__head',
+            (step ? '<span class="gnode__step gnode__step--flow">' + step + '</span>' : '') +
             (START_TAG[node.id] ? '<span class="gnode__start">Start here</span>' : '') +
             '<span class="gnode__title">' + esc(node.label) + '</span>' +
             (node.blurb ? '<span class="gnode__blurb">' + esc(node.blurb) + '</span>' : '') +
@@ -1096,12 +1133,10 @@
         while (cursor && reg[cursor]) {
             chain.unshift(cursor);
             cursor = reg[cursor].parentId;
-            if (cursor === 'foundation') cursor = null;
         }
         chain.forEach(function (id) {
             if (isExpandable(id)) setOpen(id, true);
         });
-        syncFoundation();
 
         if (mode === 'graph') {
             refreshGraph();
@@ -1133,7 +1168,6 @@
             });
             if (deepest) {
                 setOpen(deepest, false);
-                syncFoundation();
                 if (mode === 'graph') refreshGraph();
                 scheduleSettle();
             }
@@ -1207,7 +1241,7 @@
             }
         }
 
-        tree.routes.forEach(function (route) {
+        allRoutes().forEach(function (route) {
             route.children.forEach(function (topic) {
                 var base = {};
                 base[route.id] = true; base[topic.id] = true;
@@ -1220,11 +1254,15 @@
             });
         });
 
+        /* Worst case: every cluster open at once, across every
+           combination of which topic is expanded on each side. */
         tree.routes[0].children.forEach(function (a) {
             tree.routes[1].children.forEach(function (b) {
-                var both = { qgis: true, python: true };
-                both[a.id] = true; both[b.id] = true;
-                trial('both ' + a.id + ' + ' + b.id, both);
+                tree.shared.children.forEach(function (c) {
+                    var all = { qgis: true, python: true, foundation: true };
+                    all[a.id] = true; all[b.id] = true; all[c.id] = true;
+                    trial('all ' + a.id + ' + ' + b.id + ' + ' + c.id, all);
+                });
             });
         });
 
@@ -1254,7 +1292,6 @@
         if (!stage || !gcanvas || !gnodes || !wires || !mtree) return;
 
         buildRegistry();
-        buildFoundation();
         buildGraph();
         buildList();
         initTips();

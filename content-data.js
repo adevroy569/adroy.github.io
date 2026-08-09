@@ -408,7 +408,7 @@ window.GEO_TREE = {
        ──────────────────────────────────────────────── */
     shared: {
         id: 'foundation',
-        label: 'Common Ground',
+        label: 'Shared by both',
         blurb: 'Whichever route you take, your data needs a home and a future. These modules are shared by both.',
         children: [
             {

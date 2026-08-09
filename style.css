@@ -199,24 +199,6 @@ button {
     padding: clamp(1.7rem, 3.6vw, 2.6rem) var(--gutter) clamp(1.4rem, 3vw, 2rem);
 }
 
-.hero__eyebrow {
-    margin: 0 0 0.7rem;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    font-family: var(--font-mono);
-    font-size: 0.74rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-}
-
-.hero__eyebrow-sep {
-    width: 32px; height: 1px;
-    background: linear-gradient(90deg, var(--qgis), var(--python));
-    opacity: 0.7;
-}
-
 .hero__title {
     margin: 0 0 0.7rem;
     font-family: var(--font-display);
@@ -320,6 +302,25 @@ button {
 
 .edge--qgis   { stroke: var(--qgis-edge); }
 .edge--python { stroke: var(--python-edge); }
+.edge--shared { stroke: rgba(224, 180, 88, 0.5); }
+
+/* both lifecycles feed the shared cluster */
+.edge--join {
+    stroke-width: 1.5;
+    stroke-dasharray: 5 6;
+}
+.edge--join.is-on { opacity: 0.5; }
+
+/* the direction of travel around each route */
+.edge--cycle {
+    stroke-width: 1.4;
+    stroke-dasharray: 3 7;
+    stroke-linecap: round;
+}
+.edge--cycle.is-on { opacity: 0.42; }
+
+.edge-arrow--qgis   { fill: var(--qgis); }
+.edge-arrow--python { fill: var(--python); }
 
 .edge.is-draw {
     stroke-dasharray: 1 1;
@@ -380,22 +381,27 @@ button {
 .ghub--python.is-open,
 .ghub--python:hover { box-shadow: 0 0 0 5px var(--python-soft), 0 14px 36px rgba(0, 0, 0, 0.5); }
 
-.ghub__tagline {
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-}
-
 .ghub__label {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: 1.62rem;
     line-height: 1.05;
 }
 .ghub--qgis .ghub__label   { color: var(--qgis); }
 .ghub--python .ghub__label { color: var(--python); }
+.ghub--shared .ghub__label { color: var(--shared); font-size: 1.02rem; }
+
+/* the shared cluster hub, smaller and gold */
+.ghub--small { width: 106px; height: 106px; }
+.ghub--small .ghub__count { font-size: 0.6rem; }
+.ghub--shared { border-color: rgba(224, 180, 88, 0.45); }
+.ghub--shared .ghub__ring { border-color: rgba(224, 180, 88, 0.32); }
+.ghub--shared.is-open,
+.ghub--shared:hover { box-shadow: 0 0 0 5px var(--shared-soft), 0 14px 36px rgba(0, 0, 0, 0.5); }
+.gnode--shared.is-open,
+.gnode--shared:hover { border-color: rgba(224, 180, 88, 0.6); }
+.gnode--shared.is-open { box-shadow: 0 0 0 3px var(--shared-soft), 0 10px 26px rgba(0, 0, 0, 0.45); }
+.gnode--shared .gnode__count { color: var(--shared); }
 
 .ghub__count {
     font-family: var(--font-mono);
@@ -465,6 +471,37 @@ button {
 .gnode[data-status="soon"] { border-style: dashed; }
 .gnode[data-status="soon"] .gnode__title { color: var(--ink-2); }
 
+.gnode__step {
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--ink-3);
+    box-shadow: 0 0 0 3px var(--bg);
+}
+.gnode--qgis .gnode__step   { background: var(--qgis); }
+.gnode--python .gnode__step { background: var(--python); }
+
+.gnode__step--flow {
+    position: static;
+    transform: none;
+    display: inline-flex;
+    margin-right: 0.4rem;
+    box-shadow: none;
+    vertical-align: middle;
+}
+.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
+.mnode--python .gnode__step--flow { background: var(--python); }
+
 .gnode__start {
     position: absolute;
     top: -9px;
@@ -479,9 +516,71 @@ button {
     text-transform: uppercase;
 }
 .gnode--qgis .gnode__start,
-.mnode--qgis .gnode__start { color: var(--qgis); }
+.mnode--qgis .gnode__step {
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--ink-3);
+    box-shadow: 0 0 0 3px var(--bg);
+}
+.gnode--qgis .gnode__step   { background: var(--qgis); }
+.gnode--python .gnode__step { background: var(--python); }
+
+.gnode__step--flow {
+    position: static;
+    transform: none;
+    display: inline-flex;
+    margin-right: 0.4rem;
+    box-shadow: none;
+    vertical-align: middle;
+}
+.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
+.mnode--python .gnode__step--flow { background: var(--python); }
+
+.gnode__start { color: var(--qgis); }
 .gnode--python .gnode__start,
-.mnode--python .gnode__start { color: var(--python); }
+.mnode--python .gnode__step {
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--ink-3);
+    box-shadow: 0 0 0 3px var(--bg);
+}
+.gnode--qgis .gnode__step   { background: var(--qgis); }
+.gnode--python .gnode__step { background: var(--python); }
+
+.gnode__step--flow {
+    position: static;
+    transform: none;
+    display: inline-flex;
+    margin-right: 0.4rem;
+    box-shadow: none;
+    vertical-align: middle;
+}
+.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
+.mnode--python .gnode__step--flow { background: var(--python); }
+
+.gnode__start { color: var(--python); }
 
 .gnode__title {
     display: block;
@@ -633,74 +732,6 @@ details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--i
 }
 .frow .gleaf { max-width: 100%; }
 
-/* ─────────────────────── shared modules ─────────────────────── */
-
-.foundation {
-    margin: clamp(1.4rem, 3vw, 2.2rem) auto 0;
-    max-width: 940px;
-    background: linear-gradient(180deg, rgba(224, 180, 88, 0.05), transparent 40%), var(--panel);
-    border: 1px solid rgba(224, 180, 88, 0.26);
-    border-radius: var(--r-lg);
-    padding: 1.5rem clamp(1rem, 2.5vw, 1.8rem) 1.4rem;
-}
-
-.foundation__head { text-align: center; }
-
-.foundation__eyebrow {
-    margin: 0 0 0.3rem;
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--shared);
-}
-
-.foundation__title {
-    margin: 0 0 0.4rem;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(1.2rem, 2.2vw, 1.5rem);
-}
-
-.foundation__deck {
-    margin: 0 auto;
-    max-width: 54ch;
-    color: var(--ink-2);
-    font-size: 0.92rem;
-}
-
-.fgrid {
-    list-style: none;
-    margin: 1.2rem 0 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0.8rem;
-}
-
-.fcard {
-    border: 1px solid var(--line-2);
-    border-radius: var(--r-md);
-    background: var(--panel-2);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-.fcard[data-status="soon"] { border-style: dashed; }
-.fcard.is-open,
-.fcard:hover { border-color: rgba(224, 180, 88, 0.5); }
-.fcard.is-open { box-shadow: 0 0 0 3px var(--shared-soft); }
-
-.fcard__head {
-    position: relative;
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 0.75rem 2.3rem 0.7rem 0.9rem;
-    border-radius: var(--r-md);
-}
-.fcard__head .gnode__plus { top: 1.1rem; margin-top: 0; }
-
-.fcard__kids { padding: 0 0.9rem 0.9rem; }
-
 /* ─────────────────────── tooltip ─────────────────────── */
 
 .tip {
@@ -817,7 +848,38 @@ details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--i
 }
 .mnode__head::-webkit-details-marker { display: none; }
 .mnode__head .gnode__plus { top: 1rem; margin-top: 0; }
-.mnode .gnode__start { position: static; display: inline-block; margin-bottom: 0.25rem; }
+.mnode .gnode__step {
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--ink-3);
+    box-shadow: 0 0 0 3px var(--bg);
+}
+.gnode--qgis .gnode__step   { background: var(--qgis); }
+.gnode--python .gnode__step { background: var(--python); }
+
+.gnode__step--flow {
+    position: static;
+    transform: none;
+    display: inline-flex;
+    margin-right: 0.4rem;
+    box-shadow: none;
+    vertical-align: middle;
+}
+.mnode--qgis .gnode__step--flow   { background: var(--qgis); }
+.mnode--python .gnode__step--flow { background: var(--python); }
+
+.gnode__start { position: static; display: inline-block; margin-bottom: 0.25rem; }
 
 .mnode__body {
     padding: 0.1rem 0.75rem 0.8rem;
