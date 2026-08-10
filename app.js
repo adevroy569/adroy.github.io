@@ -807,8 +807,14 @@
         if (spawnTimers[id]) { clearTimeout(spawnTimers[id]); delete spawnTimers[id]; }
 
         if (show) {
-            if (!node.classList.contains('is-off')) return;
-            if (!reduceMotion && fromRect) {
+            var wasOff = node.classList.contains('is-off');
+            var midFade = node.classList.contains('is-spawning');
+            /* Nothing to do only when the node is already fully shown.
+               A node caught mid fade still has is-spawning applied, and
+               returning early there would strand it at zero opacity,
+               which is what happens if a hub is toggled twice quickly. */
+            if (!wasOff && !midFade) return;
+            if (!reduceMotion && fromRect && wasOff) {
                 node.style.transition = 'none';
                 node.style.left = fromRect.x + 'px';
                 node.style.top = fromRect.y + 'px';
@@ -1128,6 +1134,7 @@
             var isShared = route.id === 'foundation';
             var d = el('details', 'mroute mroute--' + route.accent);
             d.id = 'm-' + route.id;
+            d.open = true;
             d.appendChild(el('summary', 'mroute__head',
                 '<span class="mroute__name">' + esc(route.label) + '</span>' +
                 '<span class="mroute__count">' + route.children.length +
@@ -1181,6 +1188,10 @@
         root.addEventListener('toggle', function (e) {
             var target = e.target;
             if (!target.open || target.tagName !== 'DETAILS') return;
+            /* Top level groups are the three clusters, which are
+               independent of each other exactly as the hubs are on
+               the map. Only the tiers below them are an accordion. */
+            if (target.classList.contains('mroute')) return;
             var parent = target.parentElement;
             Array.prototype.forEach.call(parent.children, function (sib) {
                 if (sib !== target && sib.tagName === 'DETAILS' && sib.open) sib.open = false;
@@ -1411,6 +1422,13 @@
         if (!stage || !gcanvas || !gnodes || !wires || !mtree) return;
 
         buildRegistry();
+
+        /* The map opens showing every cluster's first tier, so the
+           whole structure is legible on arrival rather than needing
+           three clicks to reveal. Hubs are independent of one
+           another, so opening all three breaks no accordion rule. */
+        allRoutes().forEach(function (route) { open[route.id] = true; });
+
         buildGraph();
         buildList();
         initTips();
