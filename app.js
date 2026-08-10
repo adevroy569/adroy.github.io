@@ -58,24 +58,39 @@
        CONFIG
        ──────────────────────────────────────────────────────── */
 
-    var GRAPH_MIN = 1240;    /* px of container needed for graph mode */
-    var SOLVE_W   = 1340;    /* minimum canvas the solver lays out on  */
-    var SOLVE_H   = 820;     /* narrower containers scale the map down */
-    var FAN_GAP   = 44;      /* clearance from a parent to its fan     */
+    var GRAPH_MIN = 1320;    /* px of container needed for graph mode */
+    var SOLVE_W   = 1520;    /* minimum canvas the solver lays out on  */
+    var SOLVE_H   = 920;     /* narrower containers scale the map down */
+    var FAN_GAP   = 64;      /* clearance from a parent to its fan     */
     var BOUND_PAD = 14;      /* keep everything inside the stage       */
     var SEP_PAD   = 13;      /* breathing room between any two cards   */
-    var RELAX     = 90;      /* relaxation iterations                  */
+    var RELAX     = 120;      /* relaxation iterations                  */
 
     /* Three clusters: the two routes side by side, and the shared
        modules below and between them, where both lifecycles end. */
+    /* X is a fraction of width so the map breathes sideways, but Y
+       is absolute pixels. The cluster shape therefore never changes
+       with canvas height: extra height becomes margin, not stretch.
+       That removes a whole class of height dependent layout
+       resonances the audit was catching at specific window sizes. */
     var HUB_POS = {
-        qgis:       { x: 0.305, y: 0.37 },
-        python:     { x: 0.695, y: 0.37 },
-        foundation: { x: 0.500, y: 0.72 }
+        qgis:       { x: 0.305, y: 340 },
+        python:     { x: 0.695, y: 340 },
+        foundation: { x: 0.500, y: 648 }
     };
 
-    var RING      = { qgis: 194, python: 194, foundation: 184 };
-    var RING_OPEN = { qgis: 178, python: 178, foundation: 172 };
+    var RING      = { qgis: 232, python: 232, foundation: 212 };
+    var RING_OPEN = { qgis: 216, python: 216, foundation: 200 };
+
+    /* Five cards will not fit shoulder to shoulder on one circle at
+       this card width, so alternate topics sit further out. That
+       separates every adjacent pair by construction instead of
+       leaving it to the relaxation to sort out. */
+    var RING_STAGGER = 40;
+
+    /* When a topic opens, its siblings step back a little so the
+       new branch has a neighbourhood to expand into. */
+    var SIBLING_PUSH = 30;
 
     /* Nominal sizes, used before the DOM is measurable and by the
        headless audit. Real layout measures the live elements. */
@@ -84,9 +99,9 @@
        estimates, which is what makes the audit meaningful. */
     var SIZES = {
         hub:   { w: 142, h: 142 },
-        topic: { w: 162, h: 68 },
-        sub:   { w: 148, h: 52 },
-        leaf:  { w: 176, h: 30 }
+        topic: { w: 168, h: 70 },
+        sub:   { w: 152, h: 56 },
+        leaf:  { w: 152, h: 56 }
     };
 
     /* Degrees, clockwise from east. Each route is one data
@@ -119,7 +134,34 @@
 
     /* Candidate offsets, in degrees, searched around the outward
        direction when placing a fan. */
-    var CANDIDATES = [0, 24, -24, 48, -48, 74, -74, 100, -100, 128, -128, 156, -156, 180];
+    /* Angles searched around the outward direction, and how far
+       out to push the fan. More options means the solver can find
+       a clean pocket instead of settling for a cramped one. */
+    var CANDIDATES = [0, 12, -12, 24, -24, 36, -36, 48, -48, 62, -62, 76, -76,
+                      92, -92, 108, -108, 124, -124, 140, -140, 158, -158, 180];
+    var REACH_STEPS = [1, 1.3];
+
+    /* A fan is normally centred on its parent, which overflows when
+       the parent sits near an edge. These let the whole fan slide
+       along its own axis to find room instead of jamming. */
+    var SHIFT_STEPS = [0];
+
+    /* How many items sit in one rank. Searching this lets a fan
+       change shape, a row or a block, to fit the pocket it has. */
+    var RANK_STEPS = [0, -1, -2];
+
+    var CLEARANCE  = 100;    /* soft space a fan keeps from other cards  */
+    var EDGE_CLEAR = 170;    /* soft space a fan keeps from the canvas   */
+    var EDGE_W     = 0.02;   /* edges cost more than neighbours do       */
+    var PULL_IN    = 0;      /* set above zero to bias toward the middle  */
+    var FOCUS_Y    = 340;    /* the open band between the two route hubs */
+
+    /* Each route keeps to its own side of the canvas. Without this
+       whichever route is laid out first claims the open middle and
+       the other one gets squeezed against an edge. Crossing is
+       allowed, it just costs, so the middle is still usable. */
+    var TERRITORY  = 1.5;
+    var TERRITORY_SLACK = 90;
 
     /* ────────────────────────────────────────────────────────
        SHARED STATE
@@ -211,6 +253,13 @@
 
     function buildRegistry() {
         allRoutes().forEach(function (route) {
+            if (!route.accent) {
+                route.accent = 'shared';
+                if (window.console && console.warn) {
+                    console.warn('Geospatial Training: route "' + route.id +
+                        '" has no accent, defaulting to shared.');
+                }
+            }
             add(route.id, { data: route, parentId: null, routeId: route.id, depth: 0, kind: 'hub' });
             walk(route.children, route.id, route.id, 1);
         });
@@ -361,12 +410,14 @@
         var out = {};
         var placed = [];
 
-        /* 1. hubs, pinned */
+        /* 1. hubs, pinned. Extra canvas height is shared as margin
+           above and below rather than stretching the clusters. */
+        var yOff = Math.max(0, (H - SOLVE_H) / 2);
         allRoutes().forEach(function (route) {
             var s = sizeFn(route.id);
             var pos = HUB_POS[route.id];
             var rect = {
-                id: route.id, x: pos.x * W, y: pos.y * H,
+                id: route.id, x: pos.x * W, y: pos.y + yOff,
                 w: s.w, h: s.h, pinned: true, spring: 1
             };
             out[route.id] = rect;
@@ -377,18 +428,21 @@
         allRoutes().forEach(function (route) {
             if (!state[route.id]) return;
             var hub = out[route.id];
-            route.children.forEach(function (topic) {
+            route.children.forEach(function (topic, index) {
                 var a = (TOPIC_ANGLE[topic.id] == null ? 90 : TOPIC_ANGLE[topic.id]) * DEG;
                 var s = sizeFn(topic.id);
                 /* The open topic sits closer in, which buys its own
                    children room to expand outward without leaving
                    the stage. */
+                var anyOpen = route.children.some(function (t) { return state[t.id]; });
                 var radius = state[topic.id] ? RING_OPEN[route.id] : RING[route.id];
+                if (anyOpen && !state[topic.id]) radius += SIBLING_PUSH;
+                if (route.children.length >= 4 && index % 2 === 1) radius += RING_STAGGER;
                 var rect = {
                     id: topic.id,
                     x: hub.x + Math.cos(a) * radius,
                     y: hub.y + Math.sin(a) * radius,
-                    w: s.w, h: s.h, spring: 0.34
+                    w: s.w, h: s.h, spring: 0.34, mass: 1
                 };
                 rect.homeX = rect.x; rect.homeY = rect.y;
                 out[topic.id] = rect;
@@ -396,16 +450,22 @@
             });
         });
 
-        /* 3. fans, outward from the hub, deepest last */
+        /* 3. fans, outward from the hub, deepest last. The focus is
+           the open band between the two hubs, which is the roomiest
+           part of the map and where deep branches should land. */
+        var focus = { x: W / 2, y: FOCUS_Y + yOff };
         allRoutes().forEach(function (route) {
             if (!state[route.id]) return;
             var hub = out[route.id];
+            /* -1 keeps to the left half, +1 to the right, 0 is the
+               shared cluster which sits in the middle by design. */
+            var side = route.id === 'qgis' ? -1 : (route.id === 'python' ? 1 : 0);
             route.children.forEach(function (topic) {
                 if (!state[topic.id]) return;
-                placeFan(topic.id, hub, out, placed, W, H, sizeFn);
+                placeFan(topic.id, hub, out, placed, W, H, sizeFn, focus, side);
                 (topic.children || []).forEach(function (child) {
                     if (!state[child.id]) return;
-                    placeFan(child.id, hub, out, placed, W, H, sizeFn);
+                    placeFan(child.id, hub, out, placed, W, H, sizeFn, focus, side);
                 });
             });
         });
@@ -415,7 +475,7 @@
     }
 
     /* Search candidate directions, keep the cheapest. */
-    function placeFan(parentId, hub, out, placed, W, H, sizeFn) {
+    function placeFan(parentId, hub, out, placed, W, H, sizeFn, focus, side) {
         var items = fanItems(parentId);
         if (!items.length) return;
         var parent = out[parentId];
@@ -425,13 +485,22 @@
         var best = null;
 
         CANDIDATES.forEach(function (offset) {
-            var rects = fanRects(parent, base + offset * DEG, items, sizeFn);
-            var score = scoreRects(rects, placed, W, H) + Math.abs(offset) * 0.3;
-            if (!best || score < best.score) best = { score: score, rects: rects };
+            REACH_STEPS.forEach(function (push) {
+                SHIFT_STEPS.forEach(function (shift) {
+                  RANK_STEPS.forEach(function (rank) {
+                    var rects = fanRects(parent, base + offset * DEG, items, sizeFn, push, shift, rank);
+                    var score = scoreRects(rects, placed, W, H, focus, side) +
+                                Math.abs(offset) * 0.6 + (push - 1) * 90 +
+                                Math.abs(shift) * 26 + Math.abs(rank) * 14;
+                    if (!best || score < best.score) best = { score: score, rects: rects };
+                  });
+                });
+            });
         });
 
         best.rects.forEach(function (rect) {
             rect.spring = 0.16;
+            rect.mass = 1;
             rect.homeX = rect.x; rect.homeY = rect.y;
             out[rect.id] = rect;
             placed.push(rect);
@@ -439,7 +508,7 @@
     }
 
     /* Lay items in ranks perpendicular to the given direction. */
-    function fanRects(parent, angle, items, sizeFn) {
+    function fanRects(parent, angle, items, sizeFn, push, shift, rank) {
         var dx = Math.cos(angle), dy = Math.sin(angle);
         var px = -dy, py = dx;
 
@@ -454,19 +523,22 @@
         var majorHorizontal = Math.abs(px) >= Math.abs(py);
         var gapMajor = majorHorizontal ? itemW + 18 : itemH + 18;
         var gapMinor = majorHorizontal ? itemH + 26 : itemW + 26;
-        var maxPerRank = majorHorizontal ? 4 : 6;
+        var maxPerRank = Math.max(2, (majorHorizontal ? 4 : 6) + (rank || 0));
 
         var n = items.length;
         var ranks = Math.ceil(n / maxPerRank);
         var perRank = Math.ceil(n / ranks);
 
-        var reach = (Math.abs(dx) * (parent.w + itemW) + Math.abs(dy) * (parent.h + itemH)) / 2 + FAN_GAP;
+        var reach = ((Math.abs(dx) * (parent.w + itemW) +
+                      Math.abs(dy) * (parent.h + itemH)) / 2 + FAN_GAP) * (push || 1);
+
+        var slide = (shift || 0) * (perRank - 1) * gapMajor / 2;
 
         return items.map(function (id, i) {
             var rank = Math.floor(i / perRank);
             var idx = i % perRank;
             var inRank = Math.min(perRank, n - rank * perRank);
-            var offset = (idx - (inRank - 1) / 2) * gapMajor;
+            var offset = (idx - (inRank - 1) / 2) * gapMajor + slide;
             var out = reach + rank * gapMinor;
             return {
                 id: id,
@@ -477,7 +549,7 @@
         });
     }
 
-    function scoreRects(rects, placed, W, H) {
+    function scoreRects(rects, placed, W, H, focus, side) {
         var score = 0;
         rects.forEach(function (r) {
             var left = r.x - r.w / 2, right = r.x + r.w / 2;
@@ -487,10 +559,52 @@
             if (top < BOUND_PAD)       score += (BOUND_PAD - top) * 26;
             if (bottom > H - BOUND_PAD) score += (bottom - (H - BOUND_PAD)) * 26;
 
-            placed.forEach(function (p) { score += overlapArea(r, p) * 0.9; });
-            rects.forEach(function (o) { if (o !== r) score += overlapArea(r, o) * 0.5; });
+            /* Crowding, not just collision. Edges are penalised over a
+               wider radius and at a higher rate than neighbouring
+               cards, so a fan is pushed off the canvas rim and into
+               open interior space without being dragged toward any
+               fixed point, which would fight the cluster geometry. */
+            score += edgeCrowd(left - BOUND_PAD) + edgeCrowd((W - BOUND_PAD) - right) +
+                     edgeCrowd(top - BOUND_PAD) + edgeCrowd((H - BOUND_PAD) - bottom);
+
+            placed.forEach(function (p) {
+                score += overlapArea(r, p) * 14;
+                score += crowd(gapBetween(r, p));
+            });
+            rects.forEach(function (o) { if (o !== r) score += overlapArea(r, o) * 8; });
+
+            /* Drift toward the open band between the two hubs
+               rather than trailing off the bottom of the canvas. */
+            if (focus && PULL_IN) score += Math.hypot(r.x - focus.x, r.y - focus.y) * PULL_IN;
+
+            /* how far this card has strayed onto the other route's side */
+            if (side) {
+                var over = side * (W / 2 - r.x) - TERRITORY_SLACK;
+                if (over > 0) score += over * TERRITORY;
+            }
         });
         return score;
+    }
+
+    function crowd(gap) {
+        if (gap >= CLEARANCE) return 0;
+        var d = CLEARANCE - (gap > 0 ? gap : 0);
+        return d * d * 0.02;
+    }
+
+    function edgeCrowd(gap) {
+        if (gap >= EDGE_CLEAR) return 0;
+        var d = EDGE_CLEAR - (gap > 0 ? gap : 0);
+        return d * d * EDGE_W;
+    }
+
+    function gapBetween(a, b) {
+        var dx = Math.abs(a.x - b.x) - (a.w + b.w) / 2;
+        var dy = Math.abs(a.y - b.y) - (a.h + b.h) / 2;
+        if (dx < 0 && dy < 0) return 0;
+        if (dx < 0) return dy;
+        if (dy < 0) return dx;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     function overlapArea(a, b) {
@@ -525,7 +639,7 @@
         /* Final pass with the springs switched off, so the last
            few pixels of penetration actually clear instead of
            being pulled back toward an ideal position. */
-        for (var f = 0; f < 24; f++) {
+        for (var f = 0; f < 48; f++) {
             for (var m = 0; m < rects.length; m++) {
                 for (var n = m + 1; n < rects.length; n++) {
                     separate(rects[m], rects[n]);
@@ -540,13 +654,17 @@
         }
     }
 
+    /* Displacement is shared inversely to mass, so a light leaf
+       yields to a topic instead of shoving it into its own hub,
+       which is what used to leave a residual overlap. */
     function separate(a, b) {
         var dx = b.x - a.x, dy = b.y - a.y;
         var ox = (a.w + b.w) / 2 + SEP_PAD - Math.abs(dx);
         var oy = (a.h + b.h) / 2 + SEP_PAD - Math.abs(dy);
         if (ox <= 0 || oy <= 0) return;
 
-        var wa = a.pinned ? 0 : 1, wb = b.pinned ? 0 : 1;
+        var wa = a.pinned ? 0 : 1 / (a.mass || 1);
+        var wb = b.pinned ? 0 : 1 / (b.mass || 1);
         var total = wa + wb;
         if (!total) return;
 
@@ -720,7 +838,7 @@
 
     function stageHeight() {
         var vh = window.innerHeight || 900;
-        return Math.round(clamp(vh * 0.82, 620, 900));
+        return Math.round(clamp(vh * 0.90, 680, 980));
     }
 
     /* The map is always solved on a canvas at least SOLVE_W by
@@ -1191,7 +1309,7 @@
        test suite can call it without a real browser.
        ──────────────────────────────────────────────────────── */
 
-    function auditLayout(W, H) {
+    function auditLayout(W, H, deep) {
         var problems = [];
 
         function trial(label, state) {
@@ -1230,19 +1348,44 @@
             });
         });
 
-        /* Worst case: every cluster open at once, across every
-           combination of which topic is expanded on each side. */
-        tree.routes[0].children.forEach(function (a) {
-            tree.routes[1].children.forEach(function (b) {
+        /* Every cluster open at once. In deep mode this also walks
+           the grandchildren, which is the genuine worst case a user
+           can reach: a branch expanded on both routes and in the
+           shared cluster simultaneously. */
+        var qStates = branchStates(tree.routes[0], deep);
+        var pStates = branchStates(tree.routes[1], deep);
+
+        qStates.forEach(function (a) {
+            pStates.forEach(function (b) {
                 tree.shared.children.forEach(function (c) {
                     var all = { qgis: true, python: true, foundation: true };
-                    all[a.id] = true; all[b.id] = true; all[c.id] = true;
-                    trial('all ' + a.id + ' + ' + b.id + ' + ' + c.id, all);
+                    Object.keys(a.state).forEach(function (k) { all[k] = true; });
+                    Object.keys(b.state).forEach(function (k) { all[k] = true; });
+                    all[c.id] = true;
+                    trial('all ' + a.label + ' + ' + b.label + ' + ' + c.id, all);
                 });
             });
         });
 
         return problems;
+    }
+
+    /* Every branch a route can show: each topic on its own, and in
+       deep mode each of that topic's children as well. */
+    function branchStates(route, deep) {
+        var out = [];
+        route.children.forEach(function (topic) {
+            var base = {};
+            base[topic.id] = true;
+            out.push({ label: topic.id, state: base });
+            if (!deep) return;
+            (topic.children || []).forEach(function (child) {
+                var s2 = {};
+                s2[topic.id] = true; s2[child.id] = true;
+                out.push({ label: topic.id + '/' + child.id, state: s2 });
+            });
+        });
+        return out;
     }
 
     /* ────────────────────────────────────────────────────────

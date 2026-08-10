@@ -26,7 +26,7 @@
     --python-soft: rgba(98, 168, 240, 0.13);
     --python-edge: rgba(98, 168, 240, 0.5);
 
-    --shared:      #E0B458;
+    --shared:      #F2C14E;
     --shared-soft: rgba(224, 180, 88, 0.12);
 
     --font-display: "Space Grotesk", "Avenir Next", sans-serif;
@@ -382,7 +382,7 @@ button {
 }
 .ghub--qgis .ghub__label   { color: var(--qgis); }
 .ghub--python .ghub__label { color: var(--python); }
-.ghub--shared .ghub__label { color: var(--shared); font-size: 1.2rem; }
+.ghub--shared .ghub__label { color: var(--shared); }
 
 .ghub--shared { border-color: rgba(224, 180, 88, 0.45); }
 .ghub--shared .ghub__ring { border-color: rgba(224, 180, 88, 0.32); }
@@ -404,8 +404,8 @@ button {
 .gnode {
     position: absolute;
     transform: translate(-50%, -50%);
-    width: 162px;
-    height: 68px;
+    width: 168px;
+    height: 70px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -449,9 +449,9 @@ button {
 .gnode.is-dim:hover { opacity: 1; }
 
 .gnode--sub {
-    width: 148px;
-    height: 52px;
-    padding: 0.35rem 1.35rem 0.35rem 0.6rem;
+    width: 152px;
+    height: 56px;
+    padding: 0.35rem 1.3rem 0.35rem 0.6rem;
     z-index: 5;
 }
 
@@ -584,6 +584,17 @@ details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--i
     white-space: nowrap;
 }
 
+/* map leaves get three lines instead of one truncated line */
+.gnodes .gleaf__label {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    text-overflow: clip;
+}
+.gnodes .gleaf > svg { align-self: flex-start; margin-top: 1px; }
+.gnodes .gleaf__ext { align-self: flex-start; margin-top: 1px; }
+
 .gleaf__ext {
     width: 11px; height: 11px;
     color: var(--ink-3);
@@ -595,10 +606,19 @@ details[open] > summary .gnode__plus { transform: rotate(180deg); color: var(--i
 
 .gleaf--soon { border-style: dashed; color: var(--ink-2); box-shadow: none; }
 
-/* Leaves living on the map are positioned like nodes */
+/* Leaves on the map are cards the same size as the sub tiles,
+   not small pills, so their labels are actually readable. */
 .gnodes .gleaf {
     position: absolute;
     transform: translate(-50%, -50%);
+    width: 152px;
+    height: 56px;
+    padding: 0.4rem 0.5rem 0.4rem 0.55rem;
+    border-radius: var(--r-md);
+    align-items: center;
+    gap: 0.38rem;
+    font-size: 0.76rem;
+    line-height: 1.24;
     z-index: 5;
     transition:
         left 0.46s var(--spring),
